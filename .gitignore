@@ -1,3 +1,6 @@
 .env
 liboqs/
 liboqs_python/
+liboqs/
+liboqs-python/
+liboqs_python/
