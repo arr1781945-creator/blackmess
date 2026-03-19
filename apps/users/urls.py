@@ -1,4 +1,5 @@
 from django.urls import path
+from .otp_views import send_otp, verify_otp, send_invite
 from rest_framework_simplejwt.views import TokenRefreshView
 from .views import (
     LoginView, LogoutView, RegisterView,
@@ -8,6 +9,9 @@ from .views import (
 )
 
 urlpatterns = [
+    path('otp/send/', send_otp, name='send-otp'),
+    path('otp/verify/', verify_otp, name='verify-otp'),
+    path('invite/send/', send_invite, name='send-invite'),
     path('login/',           LoginView.as_view(),         name='login'),
     path('logout/',          LogoutView.as_view(),         name='logout'),
     path('register/',        RegisterView.as_view(),       name='register'),
