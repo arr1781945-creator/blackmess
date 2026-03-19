@@ -5,7 +5,7 @@ Three Swagger/OpenAPI portals: Admin, Internal, Client.
 """
 
 from django.contrib import admin
-from django.urls import path
+from django.urls import path, include
 from django.http import JsonResponse
 
 def health_check(request):

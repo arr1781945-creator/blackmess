@@ -1668,3 +1668,525 @@ class ContentModeration(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     class Meta: db_table = 'ai_moderation'; app_label = 'workspace'
 
+
+
+# ─── DB_14: Payroll & Compensation (15 tables) ───────────────────────────────
+
+class PayrollPeriod(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    name = models.CharField(max_length=100)
+    start_date = models.DateField()
+    end_date = models.DateField()
+    pay_date = models.DateField()
+    status = models.CharField(max_length=20, choices=[('draft','Draft'),('processing','Processing'),('paid','Paid'),('cancelled','Cancelled')], default='draft')
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'pay_period'; app_label = 'workspace'
+
+class PayrollRecord(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    period = models.ForeignKey(PayrollPeriod, on_delete=models.CASCADE, related_name='records')
+    employee_id = models.CharField(max_length=50)
+    basic_salary = models.DecimalField(max_digits=15, decimal_places=2)
+    allowances = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    deductions = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    tax = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    net_salary = models.DecimalField(max_digits=15, decimal_places=2)
+    status = models.CharField(max_length=20, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'pay_record'; app_label = 'workspace'
+
+class Allowance(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    name = models.CharField(max_length=100)
+    allowance_type = models.CharField(max_length=20, choices=[('fixed','Fixed'),('percentage','Percentage')])
+    amount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    percentage = models.FloatField(default=0)
+    is_taxable = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'pay_allowance'; app_label = 'workspace'
+
+class Deduction(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    name = models.CharField(max_length=100)
+    deduction_type = models.CharField(max_length=20, choices=[('fixed','Fixed'),('percentage','Percentage')])
+    amount = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    percentage = models.FloatField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'pay_deduction'; app_label = 'workspace'
+
+class PaySlip(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    record = models.OneToOneField(PayrollRecord, on_delete=models.CASCADE)
+    slip_number = models.CharField(max_length=50, unique=True)
+    generated_at = models.DateTimeField(auto_now_add=True)
+    pdf_cid = models.TextField(blank=True)
+    is_sent = models.BooleanField(default=False)
+    sent_at = models.DateTimeField(null=True)
+    class Meta: db_table = 'pay_slip'; app_label = 'workspace'
+
+class BankAccount(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    employee_id = models.CharField(max_length=50)
+    bank_name = models.CharField(max_length=100)
+    account_number = models.CharField(max_length=50)
+    account_name = models.CharField(max_length=100)
+    is_primary = models.BooleanField(default=True)
+    is_verified = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'pay_bank'; app_label = 'workspace'
+
+class TaxBracket(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    min_income = models.DecimalField(max_digits=15, decimal_places=2)
+    max_income = models.DecimalField(max_digits=15, decimal_places=2, null=True)
+    tax_rate = models.FloatField()
+    country = models.CharField(max_length=2, default='ID')
+    year = models.PositiveSmallIntegerField()
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'pay_tax_bracket'; app_label = 'workspace'
+
+class OvertimeRecord(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    employee_id = models.CharField(max_length=50)
+    date = models.DateField()
+    hours = models.FloatField()
+    rate_multiplier = models.FloatField(default=1.5)
+    reason = models.TextField(blank=True)
+    approved_by = models.CharField(max_length=50, blank=True)
+    status = models.CharField(max_length=20, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'pay_overtime'; app_label = 'workspace'
+
+class LeaveRequest(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    employee_id = models.CharField(max_length=50)
+    leave_type = models.CharField(max_length=20, choices=[('annual','Annual'),('sick','Sick'),('maternity','Maternity'),('paternity','Paternity'),('emergency','Emergency'),('unpaid','Unpaid')])
+    start_date = models.DateField()
+    end_date = models.DateField()
+    days = models.PositiveSmallIntegerField()
+    reason = models.TextField()
+    status = models.CharField(max_length=20, default='pending')
+    approved_by = models.CharField(max_length=50, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'pay_leave'; app_label = 'workspace'
+
+class AttendanceRecord(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    employee_id = models.CharField(max_length=50)
+    date = models.DateField()
+    check_in = models.TimeField(null=True)
+    check_out = models.TimeField(null=True)
+    work_hours = models.FloatField(default=0)
+    status = models.CharField(max_length=20, choices=[('present','Present'),('absent','Absent'),('late','Late'),('wfh','WFH'),('leave','Leave')], default='present')
+    notes = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'pay_attendance'; app_label = 'workspace'
+
+class SalaryAdvance(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    employee_id = models.CharField(max_length=50)
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    reason = models.TextField()
+    repayment_months = models.PositiveSmallIntegerField(default=1)
+    status = models.CharField(max_length=20, default='pending')
+    approved_by = models.CharField(max_length=50, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'pay_advance'; app_label = 'workspace'
+
+class PerformanceBonus(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    employee_id = models.CharField(max_length=50)
+    period = models.ForeignKey(PayrollPeriod, on_delete=models.CASCADE)
+    amount = models.DecimalField(max_digits=15, decimal_places=2)
+    reason = models.CharField(max_length=255)
+    approved_by = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'pay_bonus'; app_label = 'workspace'
+
+class InsurancePlan(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    provider = models.CharField(max_length=100)
+    plan_name = models.CharField(max_length=100)
+    coverage_type = models.CharField(max_length=20, choices=[('health','Health'),('life','Life'),('accident','Accident')])
+    premium = models.DecimalField(max_digits=10, decimal_places=2)
+    coverage_amount = models.DecimalField(max_digits=15, decimal_places=2)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'pay_insurance'; app_label = 'workspace'
+
+class PensionContribution(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    employee_id = models.CharField(max_length=50)
+    period = models.ForeignKey(PayrollPeriod, on_delete=models.CASCADE)
+    employee_contribution = models.DecimalField(max_digits=15, decimal_places=2)
+    employer_contribution = models.DecimalField(max_digits=15, decimal_places=2)
+    total = models.DecimalField(max_digits=15, decimal_places=2)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'pay_pension'; app_label = 'workspace'
+
+class EmployeeTransfer(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    employee_id = models.CharField(max_length=50)
+    from_department = models.CharField(max_length=100)
+    to_department = models.CharField(max_length=100)
+    from_position = models.CharField(max_length=100)
+    to_position = models.CharField(max_length=100)
+    effective_date = models.DateField()
+    reason = models.TextField()
+    approved_by = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'pay_transfer'; app_label = 'workspace'
+
+
+# ─── DB_15: Compliance & Legal (15 tables) ───────────────────────────────────
+
+class LegalDocument(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    title = models.CharField(max_length=255)
+    doc_type = models.CharField(max_length=50, choices=[('contract','Contract'),('nda','NDA'),('policy','Policy'),('regulation','Regulation'),('license','License')])
+    content_cid = models.TextField(blank=True)
+    effective_date = models.DateField()
+    expiry_date = models.DateField(null=True)
+    status = models.CharField(max_length=20, default='active')
+    created_by = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'legal_document'; app_label = 'workspace'
+
+class ComplianceRequirement(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    title = models.CharField(max_length=255)
+    regulation = models.CharField(max_length=100)
+    description = models.TextField()
+    due_date = models.DateField(null=True)
+    status = models.CharField(max_length=20, choices=[('pending','Pending'),('in_progress','In Progress'),('completed','Completed'),('overdue','Overdue')], default='pending')
+    assigned_to = models.CharField(max_length=50, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'legal_compliance'; app_label = 'workspace'
+
+class RegulatoryFiling(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    filing_type = models.CharField(max_length=50)
+    regulator = models.CharField(max_length=100)
+    period = models.CharField(max_length=20)
+    due_date = models.DateField()
+    filed_date = models.DateField(null=True)
+    status = models.CharField(max_length=20, default='pending')
+    document_cid = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'legal_filing'; app_label = 'workspace'
+
+class RiskAssessment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    title = models.CharField(max_length=255)
+    risk_type = models.CharField(max_length=50)
+    likelihood = models.PositiveSmallIntegerField(choices=[(i,i) for i in range(1,6)])
+    impact = models.PositiveSmallIntegerField(choices=[(i,i) for i in range(1,6)])
+    risk_score = models.PositiveSmallIntegerField()
+    mitigation = models.TextField()
+    status = models.CharField(max_length=20, default='open')
+    assessed_by = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'legal_risk'; app_label = 'workspace'
+
+class DataPrivacyRecord(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    data_subject = models.CharField(max_length=100)
+    data_type = models.CharField(max_length=50)
+    purpose = models.TextField()
+    legal_basis = models.CharField(max_length=50)
+    retention_period = models.PositiveSmallIntegerField()
+    is_sensitive = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'legal_privacy'; app_label = 'workspace'
+
+class DataBreachRecord(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    description = models.TextField()
+    affected_records = models.PositiveIntegerField(default=0)
+    severity = models.CharField(max_length=20)
+    reported_to_authority = models.BooleanField(default=False)
+    reported_at = models.DateTimeField(null=True)
+    resolved_at = models.DateTimeField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'legal_breach'; app_label = 'workspace'
+
+class ConsentRecord(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user_id = models.CharField(max_length=50)
+    consent_type = models.CharField(max_length=50)
+    granted = models.BooleanField(default=True)
+    ip_address = models.GenericIPAddressField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    revoked_at = models.DateTimeField(null=True)
+    class Meta: db_table = 'legal_consent'; app_label = 'workspace'
+
+class AuditFinding(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    audit_type = models.CharField(max_length=50)
+    finding = models.TextField()
+    severity = models.CharField(max_length=20)
+    recommendation = models.TextField()
+    status = models.CharField(max_length=20, default='open')
+    due_date = models.DateField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'legal_finding'; app_label = 'workspace'
+
+class PolicyViolation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    employee_id = models.CharField(max_length=50)
+    policy = models.CharField(max_length=255)
+    description = models.TextField()
+    severity = models.CharField(max_length=20)
+    action_taken = models.TextField(blank=True)
+    status = models.CharField(max_length=20, default='open')
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'legal_violation'; app_label = 'workspace'
+
+class LicenseTracking(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    software_name = models.CharField(max_length=100)
+    license_type = models.CharField(max_length=50)
+    seats = models.PositiveIntegerField(default=1)
+    used_seats = models.PositiveIntegerField(default=0)
+    cost = models.DecimalField(max_digits=15, decimal_places=2)
+    expiry_date = models.DateField(null=True)
+    vendor = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'legal_license'; app_label = 'workspace'
+
+class ContractManagement(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    title = models.CharField(max_length=255)
+    party_name = models.CharField(max_length=100)
+    contract_type = models.CharField(max_length=50)
+    value = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    start_date = models.DateField()
+    end_date = models.DateField(null=True)
+    auto_renew = models.BooleanField(default=False)
+    status = models.CharField(max_length=20, default='active')
+    document_cid = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'legal_contract'; app_label = 'workspace'
+
+class EthicsComplaint(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    complaint_type = models.CharField(max_length=50)
+    description = models.TextField()
+    is_anonymous = models.BooleanField(default=False)
+    reporter_id = models.CharField(max_length=50, blank=True)
+    status = models.CharField(max_length=20, default='open')
+    assigned_to = models.CharField(max_length=50, blank=True)
+    resolved_at = models.DateTimeField(null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'legal_ethics'; app_label = 'workspace'
+
+class InsiderThreatLog(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    user_id = models.CharField(max_length=50)
+    activity = models.TextField()
+    risk_score = models.FloatField(default=0)
+    flagged = models.BooleanField(default=False)
+    reviewed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'legal_insider'; app_label = 'workspace'
+
+class ComplianceTraining(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    required_for = models.JSONField(default=list)
+    due_date = models.DateField(null=True)
+    is_mandatory = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'legal_training'; app_label = 'workspace'
+
+class ComplianceTrainingRecord(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    training = models.ForeignKey(ComplianceTraining, on_delete=models.CASCADE)
+    employee_id = models.CharField(max_length=50)
+    completed_at = models.DateTimeField(null=True)
+    score = models.FloatField(null=True)
+    passed = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'legal_training_record'; app_label = 'workspace'
+
+
+
+# ─── DB_16: Additional Tables (14 tables) ────────────────────────────────────
+
+class ProjectMilestoneV2(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    title = models.CharField(max_length=255)
+    description = models.TextField(blank=True)
+    due_date = models.DateField()
+    status = models.CharField(max_length=20, choices=[('pending','Pending'),('completed','Completed'),('overdue','Overdue')], default='pending')
+    completed_at = models.DateTimeField(null=True)
+    created_by = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'proj_milestone_v2'; app_label = 'workspace'
+
+class ProjectBudgetV2(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    allocated = models.DecimalField(max_digits=15, decimal_places=2)
+    spent = models.DecimalField(max_digits=15, decimal_places=2, default=0)
+    remaining = models.DecimalField(max_digits=15, decimal_places=2)
+    currency = models.CharField(max_length=3, default='IDR')
+    period = models.CharField(max_length=20)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'proj_budget_v2'; app_label = 'workspace'
+
+class TeamMeeting(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    title = models.CharField(max_length=255)
+    agenda = models.TextField(blank=True)
+    meeting_date = models.DateTimeField()
+    duration_minutes = models.PositiveSmallIntegerField(default=60)
+    location = models.CharField(max_length=255, blank=True)
+    meeting_url = models.URLField(blank=True)
+    minutes = models.TextField(blank=True)
+    created_by = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'team_meeting'; app_label = 'workspace'
+
+class MeetingAttendee(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    meeting = models.ForeignKey(TeamMeeting, on_delete=models.CASCADE, related_name='attendees')
+    user_id = models.CharField(max_length=50)
+    status = models.CharField(max_length=20, choices=[('invited','Invited'),('accepted','Accepted'),('declined','Declined'),('attended','Attended')], default='invited')
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'team_meeting_attendee'; app_label = 'workspace'
+
+class ActionItem(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    meeting = models.ForeignKey(TeamMeeting, on_delete=models.CASCADE, related_name='action_items')
+    description = models.TextField()
+    assigned_to = models.CharField(max_length=50)
+    due_date = models.DateField(null=True)
+    status = models.CharField(max_length=20, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'team_action'; app_label = 'workspace'
+
+class KnowledgeTag(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    name = models.CharField(max_length=50)
+    color = models.CharField(max_length=7, default='#6366f1')
+    usage_count = models.PositiveIntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'km_tag'; app_label = 'workspace'
+
+class SystemConfig(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    key = models.CharField(max_length=100)
+    value = models.TextField()
+    description = models.TextField(blank=True)
+    is_secret = models.BooleanField(default=False)
+    updated_by = models.CharField(max_length=50)
+    updated_at = models.DateTimeField(auto_now=True)
+    class Meta: db_table = 'sys_config'; app_label = 'workspace'
+
+class APIKey(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    name = models.CharField(max_length=100)
+    key_hash = models.CharField(max_length=64)
+    prefix = models.CharField(max_length=8)
+    permissions = models.JSONField(default=list)
+    last_used = models.DateTimeField(null=True)
+    expires_at = models.DateTimeField(null=True)
+    is_active = models.BooleanField(default=True)
+    created_by = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'sys_api_key'; app_label = 'workspace'
+
+class SystemHealth(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    service = models.CharField(max_length=100)
+    status = models.CharField(max_length=20)
+    response_time_ms = models.PositiveIntegerField(default=0)
+    cpu_usage = models.FloatField(default=0)
+    memory_usage = models.FloatField(default=0)
+    disk_usage = models.FloatField(default=0)
+    checked_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'sys_health'; app_label = 'workspace'
+
+class NotificationTemplate(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace_id = models.CharField(max_length=50)
+    name = models.CharField(max_length=100)
+    event_type = models.CharField(max_length=50)
+    title_template = models.CharField(max_length=255)
+    body_template = models.TextField()
+    channels = models.JSONField(default=list)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'notif_template'; app_label = 'workspace'
+
+class UserFeedback(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user_id = models.CharField(max_length=50)
+    workspace_id = models.CharField(max_length=50)
+    category = models.CharField(max_length=50, choices=[('bug','Bug'),('feature','Feature Request'),('improvement','Improvement'),('other','Other')])
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    status = models.CharField(max_length=20, default='open')
+    priority = models.CharField(max_length=20, default='medium')
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'sys_feedback'; app_label = 'workspace'
+
+class AppVersion(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    version = models.CharField(max_length=20)
+    release_notes = models.TextField()
+    is_forced_update = models.BooleanField(default=False)
+    min_supported_version = models.CharField(max_length=20)
+    released_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'sys_version'; app_label = 'workspace'
+
+class MaintenanceWindow(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    title = models.CharField(max_length=255)
+    description = models.TextField()
+    start_time = models.DateTimeField()
+    end_time = models.DateTimeField()
+    affected_services = models.JSONField(default=list)
+    status = models.CharField(max_length=20, default='scheduled')
+    created_by = models.CharField(max_length=50)
+    created_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'sys_maintenance'; app_label = 'workspace'
+
+class GeoLocation(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    user_id = models.CharField(max_length=50)
+    ip_address = models.GenericIPAddressField()
+    country = models.CharField(max_length=2, blank=True)
+    city = models.CharField(max_length=100, blank=True)
+    latitude = models.FloatField(null=True)
+    longitude = models.FloatField(null=True)
+    recorded_at = models.DateTimeField(auto_now_add=True)
+    class Meta: db_table = 'sys_geo'; app_label = 'workspace'
+
