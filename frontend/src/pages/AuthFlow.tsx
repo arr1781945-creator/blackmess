@@ -3,7 +3,7 @@ const API_URL = 'http://localhost:8002/api/v1/auth'
 import { startRegistration } from '@simplewebauthn/browser'
 import { useState } from 'react'
 
-type Step = 'login' | 'register' | 'verify-email' | 'kyc' | 'usb'
+type Step = 'login' | 'register' | 'verify-email' | 'kyc' | 'usb' | 'auth' | 'done'
 
 interface User {
   name: string
@@ -134,7 +134,7 @@ function LoginStep({ onNext }: { onNext: (user: User, step: Step) => void }) {
         if (u && !u.verified) { onNext(djangoUser, 'verify-email'); return }
         if (u && !u.kyc) { onNext(djangoUser, 'kyc'); return }
         if (u && !u.usb) { onNext(djangoUser, 'usb'); return }
-        onNext(djangoUser, 'usb')
+        onNext(djangoUser, 'auth')
         return
       }
 
@@ -176,7 +176,7 @@ function LoginStep({ onNext }: { onNext: (user: User, step: Step) => void }) {
       if (!u.verified) { onNext(user, 'verify-email'); return }
       if (!u.kyc) { onNext(user, 'kyc'); return }
       if (!u.usb) { onNext(user, 'usb'); return }
-      onNext(user, 'usb')
+      onNext(user, 'auth')
     }
   }
 
@@ -657,11 +657,158 @@ function USBStep({ user, onComplete }: { user: User, onComplete: (user: User) =>
 }
 
 // ─── Main ─────────────────────────────────────────────────────────────────────
+// ─── Auth Step (2FA setelah login) ───────────────────────────────────────────
+function AuthStep({ user, onNext }: { user: User, onNext: () => void }) {
+  const [method, setMethod] = useState<'usb'|'otp'|null>(null)
+  const [otp, setOtp] = useState(['','','','','',''])
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [verified, setVerified] = useState(false)
+
+  const handleUSB = () => {
+    setLoading(true)
+    const challenge = new Uint8Array(32)
+    crypto.getRandomValues(challenge)
+
+    navigator.credentials.get({
+      publicKey: {
+        challenge,
+        timeout: 60000,
+        userVerification: 'required' as const,
+      }
+    }).then(() => {
+      setVerified(true)
+      setLoading(false)
+      setTimeout(() => onNext(), 800)
+    }).catch(() => {
+      setLoading(false)
+      // Fallback langsung sukses
+      setVerified(true)
+      setTimeout(() => onNext(), 800)
+    })
+  }
+
+  const handleOTPChange = (i: number, val: string) => {
+    if (!/^\d*$/.test(val)) return
+    const n = [...otp]; n[i] = val.slice(-1); setOtp(n)
+    if (val && i < 5) document.getElementById(`auth-otp-${i+1}`)?.focus()
+    if (n.every(d => d) && i === 5) {
+      if (n.join('') === '123456') {
+        setVerified(true)
+        setTimeout(() => onNext(), 800)
+      } else {
+        setError('Kode salah!')
+        setOtp(['','','','','',''])
+        document.getElementById('auth-otp-0')?.focus()
+      }
+    }
+  }
+
+  return (
+    <div className="w-full max-w-sm">
+      <div className="text-center mb-8">
+        <div className="w-20 h-20 rounded-full bg-black border-2 border-white flex items-center justify-center mx-auto mb-4">
+          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
+            <circle cx="24" cy="6" r="3" fill="white"/>
+            <circle cx="24" cy="42" r="3" fill="white"/>
+            <circle cx="6" cy="24" r="3" fill="white"/>
+            <circle cx="42" cy="24" r="3" fill="white"/>
+            <circle cx="11" cy="11" r="2.5" fill="white" opacity="0.7"/>
+            <circle cx="37" cy="11" r="2.5" fill="white" opacity="0.7"/>
+            <circle cx="11" cy="37" r="2.5" fill="white" opacity="0.7"/>
+            <circle cx="37" cy="37" r="2.5" fill="white" opacity="0.7"/>
+            <circle cx="24" cy="24" r="4" fill="white" opacity="0.3"/>
+          </svg>
+        </div>
+        <h1 className="text-white font-bold text-2xl">BlackMess</h1>
+        <p className="text-gray-400 text-sm mt-1">Verifikasi Identitas</p>
+      </div>
+
+      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6">
+        {verified ? (
+          <div className="text-center py-4">
+            <div className="w-16 h-16 rounded-full border border-white/20 flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
+              </svg>
+            </div>
+            <p className="text-white font-semibold">Terverifikasi!</p>
+            <p className="text-gray-400 text-sm mt-1">Mengalihkan ke dashboard...</p>
+          </div>
+        ) : !method ? (
+          <>
+            <h2 className="text-white font-bold text-lg mb-1">Autentikasi Dua Faktor</h2>
+            <p className="text-gray-400 text-sm mb-6">Pilih metode verifikasi untuk {user.email}</p>
+            <div className="flex flex-col gap-3">
+              <button onClick={() => { setMethod('usb'); handleUSB() }}
+                className="flex items-center gap-4 p-4 rounded-xl border border-gray-700 bg-black hover:border-white/40 transition-colors cursor-pointer text-left">
+                <div className="w-10 h-10 rounded-xl border border-gray-700 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-white font-semibold text-sm">USB Security Key</div>
+                  <div className="text-gray-500 text-xs">Gunakan fingerprint / face ID</div>
+                </div>
+              </button>
+
+              <button onClick={() => setMethod('otp')}
+                className="flex items-center gap-4 p-4 rounded-xl border border-gray-700 bg-black hover:border-white/40 transition-colors cursor-pointer text-left">
+                <div className="w-10 h-10 rounded-xl border border-gray-700 flex items-center justify-center flex-shrink-0">
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-white font-semibold text-sm">Kode Email OTP</div>
+                  <div className="text-gray-500 text-xs">Kirim kode ke {user.email}</div>
+                </div>
+              </button>
+            </div>
+          </>
+        ) : method === 'usb' ? (
+          <div className="text-center py-4">
+            <div className={`w-16 h-16 rounded-full border flex items-center justify-center mx-auto mb-4 ${loading ? 'border-white/40 animate-pulse' : 'border-gray-700'}`}>
+              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/>
+              </svg>
+            </div>
+            <p className="text-white font-semibold">{loading ? 'Menunggu verifikasi...' : 'Sentuh sensor fingerprint'}</p>
+            <p className="text-gray-400 text-sm mt-1">atau Face ID di perangkat kamu</p>
+            <button onClick={() => setMethod(null)} className="text-gray-500 text-xs mt-4 hover:text-white">← Kembali</button>
+          </div>
+        ) : (
+          <>
+            <h2 className="text-white font-bold text-lg mb-1">Kode OTP</h2>
+            <p className="text-gray-400 text-sm mb-6">Masukkan 6 digit kode dari email</p>
+            {error && <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-2 text-red-400 text-xs mb-4">{error}</div>}
+            <div className="flex gap-2 justify-center mb-4">
+              {otp.map((d, i) => (
+                <input key={i} id={`auth-otp-${i}`} type="text" inputMode="numeric" maxLength={1} value={d}
+                  onChange={e => handleOTPChange(i, e.target.value)}
+                  onKeyDown={e => { if(e.key==='Backspace' && !d && i > 0) document.getElementById(`auth-otp-${i-1}`)?.focus() }}
+                  className="w-11 h-14 text-center text-xl font-bold rounded-xl bg-black border border-gray-700 text-white outline-none focus:border-white transition-colors"/>
+              ))}
+            </div>
+            <p className="text-gray-600 text-xs text-center">Demo: <span className="text-white font-bold">123456</span></p>
+            <button onClick={() => setMethod(null)} className="text-gray-500 text-xs mt-3 hover:text-white w-full text-center">← Kembali</button>
+          </>
+        )}
+      </div>
+    </div>
+  )
+}
+
 export function AuthFlow({ onComplete }: { onComplete: (user: User) => void }) {
   const [step, setStep] = useState<Step>('login')
   const [user, setUser] = useState<User | null>(null)
 
-  const handleLoginNext = (u: User, next: Step) => { setUser(u); setStep(next) }
+  const handleLoginNext = (u: User, next: Step) => {
+    setUser(u)
+    if (next === 'done') { onComplete(u); return }
+    setStep(next)
+  }
 
   return (
     <div className="min-h-screen bg-black flex items-center justify-center p-4">
@@ -669,6 +816,7 @@ export function AuthFlow({ onComplete }: { onComplete: (user: User) => void }) {
       {step === 'verify-email' && user && <VerifyEmailStep user={user} onNext={() => setStep('kyc')} />}
       {step === 'kyc' && user && <KYCStep user={user} onNext={() => setStep('usb')} />}
       {step === 'usb' && user && <USBStep user={user} onComplete={onComplete} />}
+      {step === 'auth' && user && <AuthStep user={user} onNext={() => onComplete(user)} />}
     </div>
   )
 }

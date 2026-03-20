@@ -256,7 +256,7 @@ const VaultPage = () => {
         <h2 className="text-foreground font-bold text-xl flex-1">Brankas</h2>
         <div className="flex items-center gap-2 text-green-400 text-xs bg-green-500/10 px-3 py-1.5 rounded-full border border-green-500/20">
           <div className="w-2 h-2 rounded-full bg-green-400"/>
-          Terbuka · E2EE Aktif
+          Terbuka
         </div>
       </div>
       <div className="grid grid-cols-1 gap-3 max-w-lg">
@@ -313,6 +313,27 @@ const SettingsPage = () => {
             </div>
             <Toggle val={sound} onChange={() => setSound(!sound)}/>
           </div>
+          <div className="flex items-center justify-between py-2 border-t border-border">
+            <div>
+              <div className="text-foreground text-sm">Notifikasi mention</div>
+              <div className="text-muted-foreground text-xs">Beritahu saat ada yang @mention</div>
+            </div>
+            <Toggle val={true} onChange={() => {}}/>
+          </div>
+          <div className="flex items-center justify-between py-2 border-t border-border">
+            <div>
+              <div className="text-foreground text-sm">Notifikasi DM</div>
+              <div className="text-muted-foreground text-xs">Beritahu saat ada pesan langsung</div>
+            </div>
+            <Toggle val={true} onChange={() => {}}/>
+          </div>
+          <div className="flex items-center justify-between py-2 border-t border-border">
+            <div>
+              <div className="text-foreground text-sm">Jam tenang</div>
+              <div className="text-muted-foreground text-xs">Nonaktifkan notifikasi 22:00 - 07:00</div>
+            </div>
+            <Toggle val={false} onChange={() => {}}/>
+          </div>
         </div>
 
         {/* Bahasa */}
@@ -356,13 +377,7 @@ const SettingsPage = () => {
             </div>
             <Toggle val={true} onChange={() => {}}/>
           </div>
-          <div className="flex items-center justify-between py-2 border-t border-border">
-            <div>
-              <div className="text-foreground text-sm">Anti-forensik</div>
-              <div className="text-muted-foreground text-xs">Hapus jejak otomatis setelah logout</div>
-            </div>
-            <Toggle val={true} onChange={() => {}}/>
-          </div>
+
         </div>
 
         {/* Pesan */}
@@ -392,7 +407,6 @@ const SettingsPage = () => {
               {label:'Enkripsi', val:'Aktif', ok:true},
               
               {label:'USB Key 2FA', val:'2 key terdaftar', ok:true},
-              {label:'Zero Knowledge', val:'Aktif', ok:true},
             ].map(item => (
               <div key={item.label} className="flex items-center justify-between py-1.5 border-b border-border last:border-0">
                 <span className="text-muted-foreground">{item.label}</span>
@@ -485,6 +499,196 @@ const InvitePage = ({ user }: { user: User }) => {
   )
 }
 
+
+// ─── Activity Page ────────────────────────────────────────────────────────────
+const ActivityPage = () => {
+  const [activities] = useState([
+    { id:1, type:'mention', text:'Seseorang mention kamu di #umum', time:'Baru saja', read:false },
+    { id:2, type:'reply', text:'Ada balasan di thread kamu', time:'5 menit lalu', read:false },
+    { id:3, type:'join', text:'Anggota baru bergabung ke workspace', time:'1 jam lalu', read:true },
+    { id:4, type:'invite', text:'Undangan kamu diterima', time:'2 jam lalu', read:true },
+  ])
+
+  const icons: Record<string, string> = {
+    mention: '@', reply: '↩', join: '👤', invite: '✉️'
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto bg-background p-6">
+      <h2 className="text-foreground font-bold text-xl mb-6">Aktivitas</h2>
+      <div className="max-w-lg space-y-2">
+        {activities.map(a => (
+          <div key={a.id} className={`flex items-start gap-3 p-4 rounded-xl border transition-colors ${!a.read ? 'bg-accent border-border' : 'border-transparent hover:bg-accent'}`}>
+            <div className="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-sm flex-shrink-0">{icons[a.type]}</div>
+            <div className="flex-1">
+              <p className="text-foreground text-sm">{a.text}</p>
+              <p className="text-muted-foreground text-xs mt-0.5">{a.time}</p>
+            </div>
+            {!a.read && <div className="w-2 h-2 rounded-full bg-white flex-shrink-0 mt-2"/>}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+// ─── Saved Page ───────────────────────────────────────────────────────────────
+const SavedPage = () => {
+  const [saved, setSaved] = useState<any[]>(() => {
+    return JSON.parse(localStorage.getItem('bm_saved') || '[]')
+  })
+
+  return (
+    <div className="flex-1 overflow-y-auto bg-background p-6">
+      <h2 className="text-foreground font-bold text-xl mb-6">Tersimpan</h2>
+      <div className="max-w-lg">
+        {saved.length === 0 ? (
+          <div className="text-center py-12">
+            <svg className="w-12 h-12 text-muted-foreground mx-auto mb-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>
+            <p className="text-muted-foreground text-sm">Belum ada pesan tersimpan</p>
+            <p className="text-muted-foreground text-xs mt-1">Simpan pesan dengan klik ikon bookmark</p>
+          </div>
+        ) : (
+          <div className="space-y-3">
+            {saved.map((s: any, i: number) => (
+              <div key={i} className="p-4 rounded-xl bg-accent border border-border">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-7 h-7 rounded-full bg-gray-800 flex items-center justify-center text-white text-xs font-bold">{s.avatar}</div>
+                  <span className="text-foreground text-sm font-semibold">{s.user}</span>
+                  <span className="text-muted-foreground text-xs">#{s.channel}</span>
+                </div>
+                <p className="text-foreground text-sm">{s.content}</p>
+                <div className="flex items-center justify-between mt-2">
+                  <span className="text-muted-foreground text-xs">{s.time}</span>
+                  <button onClick={() => {
+                    const newSaved = saved.filter((_: any, idx: number) => idx !== i)
+                    setSaved(newSaved)
+                    localStorage.setItem('bm_saved', JSON.stringify(newSaved))
+                  }} className="text-muted-foreground hover:text-red-400 text-xs">Hapus</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
+  )
+}
+
+// ─── Files Page ───────────────────────────────────────────────────────────────
+const FilesPage = ({ currentUser }: { currentUser: any }) => {
+  const [files, setFiles] = useState<any[]>(() => {
+    return JSON.parse(localStorage.getItem('bm_files') || '[]')
+  })
+  const [dragging, setDragging] = useState(false)
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    setDragging(false)
+    const droppedFiles = Array.from(e.dataTransfer.files)
+    const newFiles = droppedFiles.map(f => ({
+      name: f.name,
+      size: f.size < 1024*1024 ? `${(f.size/1024).toFixed(1)} KB` : `${(f.size/1024/1024).toFixed(1)} MB`,
+      type: f.type,
+      url: URL.createObjectURL(f),
+      uploadedBy: currentUser?.name || 'Saya',
+      uploadedAt: new Date().toLocaleString('id-ID'),
+    }))
+    const updated = [...files, ...newFiles]
+    setFiles(updated)
+    localStorage.setItem('bm_files', JSON.stringify(updated))
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto bg-background p-6"
+      onDragOver={e => { e.preventDefault(); setDragging(true) }}
+      onDragLeave={() => setDragging(false)}
+      onDrop={handleDrop}>
+      <h2 className="text-foreground font-bold text-xl mb-2">Berkas</h2>
+      <p className="text-muted-foreground text-sm mb-6">Semua file yang dibagikan di workspace</p>
+
+      {/* Upload zone */}
+      <div className={`border-2 border-dashed rounded-xl p-8 text-center mb-6 transition-colors ${dragging ? 'border-white bg-white/5' : 'border-gray-700 hover:border-gray-500'}`}>
+        <svg className="w-10 h-10 text-muted-foreground mx-auto mb-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+        <p className="text-foreground text-sm font-medium">Drag & drop file di sini</p>
+        <p className="text-muted-foreground text-xs mt-1">Gambar, PDF, dokumen — Maks 10MB</p>
+      </div>
+
+      {files.length === 0 ? (
+        <p className="text-center text-muted-foreground text-sm">Belum ada file diunggah</p>
+      ) : (
+        <div className="space-y-2">
+          {files.map((f: any, i: number) => (
+            <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-accent border border-border">
+              <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0">
+                {f.type?.startsWith('image/') ? (
+                  <img src={f.url} alt={f.name} className="w-full h-full object-cover rounded-lg"/>
+                ) : (
+                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                )}
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-foreground text-sm font-medium truncate">{f.name}</p>
+                <p className="text-muted-foreground text-xs">{f.size} • {f.uploadedBy} • {f.uploadedAt}</p>
+              </div>
+              <a href={f.url} download={f.name} className="p-2 rounded-lg hover:bg-muted text-muted-foreground hover:text-foreground">
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+              </a>
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  )
+}
+
+// ─── Apps Page ────────────────────────────────────────────────────────────────
+const AppsPage = () => {
+  const apps = [
+    { name:'Google Drive', desc:'Kelola dokumen bersama', url:'https://drive.google.com', logo:'https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg' },
+    { name:'Google Calendar', desc:'Sinkronisasi jadwal tim', url:'https://calendar.google.com', logo:'https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg' },
+    { name:'Gmail', desc:'Email perusahaan terintegrasi', url:'https://mail.google.com', logo:'https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg' },
+    { name:'GitHub', desc:'Notifikasi commit & PR', url:'https://github.com', logo:'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png' },
+    { name:'Jira', desc:'Manajemen proyek & tiket', url:'https://www.atlassian.com/software/jira', logo:'https://upload.wikimedia.org/wikipedia/commons/8/8a/Jira_Logo.svg' },
+    { name:'Trello', desc:'Manajemen tugas visual', url:'https://trello.com', logo:'https://upload.wikimedia.org/wikipedia/en/8/8c/Trello_logo.svg' },
+    { name:'Notion', desc:'Dokumentasi tim', url:'https://notion.so', logo:'https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png' },
+    { name:'Slack', desc:'Import data dari Slack', url:'https://slack.com', logo:'https://upload.wikimedia.org/wikipedia/commons/b/b9/Slack_Technologies_Logo.svg' },
+
+  ]
+
+  const [connected, setConnected] = useState<string[]>([])
+
+  return (
+    <div className="flex-1 overflow-y-auto bg-background p-6">
+      <h2 className="text-foreground font-bold text-xl mb-2">Aplikasi</h2>
+      <p className="text-muted-foreground text-sm mb-6">Integrasikan BlackMess dengan aplikasi favorit kamu</p>
+      <div className="max-w-lg space-y-3">
+        {apps.map(app => (
+          <div key={app.name} className="flex items-center gap-4 p-4 rounded-xl bg-accent border border-border">
+            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center flex-shrink-0 p-1.5">
+              <img src={app.logo} alt={app.name} className="w-full h-full object-contain"/>
+            </div>
+            <div className="flex-1 min-w-0">
+              <div className="text-foreground font-semibold text-sm">{app.name}</div>
+              <div className="text-muted-foreground text-xs mt-0.5">{app.desc}</div>
+            </div>
+            <div className="flex gap-2 flex-shrink-0">
+              <button onClick={() => window.open(app.url, '_blank')}
+                className="px-3 py-1.5 rounded-lg text-xs font-bold border border-border text-muted-foreground hover:text-foreground hover:bg-muted transition-colors">
+                Buka
+              </button>
+              <button onClick={() => setConnected(prev => prev.includes(app.name) ? prev.filter(a => a !== app.name) : [...prev, app.name])}
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${connected.includes(app.name) ? 'bg-gray-700 text-white' : 'bg-white text-black'}`}>
+                {connected.includes(app.name) ? '✓ Aktif' : 'Hubungkan'}
+              </button>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ─── More Page ────────────────────────────────────────────────────────────────
 const MorePage = ({ onNav }: { onNav: (page: string) => void }) => (
   <div className="flex-1 overflow-y-auto bg-background p-6">
@@ -542,18 +746,17 @@ const ProfilePage = ({ user, onLogout, onBack }: { user: User, onLogout: () => v
             </div>
           </div>
         </div>
-        {/* Status selector */}
+        {/* Status otomatis */}
         <div className="bg-accent border border-border rounded-xl p-4 mb-4">
           <h3 className="text-foreground font-semibold text-sm mb-3">Status</h3>
-          <div className="grid grid-cols-2 gap-2">
-            {(Object.entries(statusConfig) as any[]).map(([key, val]: any) => (
-              <button key={key} onClick={() => setStatus(key)}
-                className={`flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-colors ${status===key ? 'bg-white/10 border border-white/20' : 'border border-border hover:bg-muted'}`}>
-                <div className={`w-2.5 h-2.5 rounded-full ${val.color} flex-shrink-0`}/>
-                <span className="text-foreground">{val.label}</span>
-              </button>
-            ))}
+          <div className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border">
+            <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse flex-shrink-0"/>
+            <div>
+              <div className="text-foreground text-sm font-medium">Aktif</div>
+              <div className="text-muted-foreground text-xs">Status diatur otomatis berdasarkan aktivitas</div>
+            </div>
           </div>
+          <p className="text-muted-foreground text-xs mt-2">• Aktif saat menggunakan aplikasi<br/>• Pergi setelah 5 menit tidak aktif<br/>• Offline saat aplikasi ditutup</p>
         </div>
 
         <div className="flex flex-col gap-4 mb-6">
@@ -616,16 +819,16 @@ export default function App() {
       case 'home': return (
         <>
           <ChannelSidebar onChannelChange={ch => setActiveChannel(ch)} />
-          <ChatArea key={activeChannel} channel={activeChannel} currentUser={user} />
+          <ChatArea key={activeChannel} channel={activeChannel} currentUser={user} onVideoCall={() => setShowVideoCall(true)} onProfile={() => setSubPage("profile")} />
         </>
       )
       case 'dms': return <DmsPage currentUser={user} />
-      case 'activity': return <EmptyPage icon={<svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/></svg>} title="Aktivitas" desc="Notifikasi terbaru muncul di sini" />
-      case 'saved': return <EmptyPage icon={<svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>} title="Tersimpan" desc="Pesan tersimpan muncul di sini" />
-      case 'files': return <EmptyPage icon={<svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>} title="Berkas" desc="File terenkripsi E2EE" />
-      case 'apps': return <EmptyPage icon={<svg className="w-8 h-8" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>} title="Aplikasi" desc="Integrasi tersedia di sini" />
+      case 'activity': return <ActivityPage />
+      case 'saved': return <SavedPage />
+      case 'files': return <FilesPage currentUser={user} />
+      case 'apps': return <AppsPage />
       case 'more': return <MorePage onNav={handleNav} />
-      default: return <><ChannelSidebar onChannelChange={ch => setActiveChannel(ch)} /><ChatArea key={activeChannel} channel={activeChannel} currentUser={user} /></>
+      default: return <><ChannelSidebar onChannelChange={ch => setActiveChannel(ch)} /><ChatArea key={activeChannel} channel={activeChannel} currentUser={user} onVideoCall={() => setShowVideoCall(true)} onProfile={() => setSubPage("profile")} /></>
     }
   }
 

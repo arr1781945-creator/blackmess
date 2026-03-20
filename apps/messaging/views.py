@@ -83,3 +83,15 @@ class ThreadListView(generics.ListCreateAPIView):
         return Thread.objects.filter(
             channel_id=self.kwargs["channel_id"]
         ).order_by("-last_reply_at")
+
+from rest_framework.decorators import api_view, permission_classes
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.response import Response
+from .tasks import schedule_message_deletion
+
+@api_view(['POST'])
+@permission_classes([IsAuthenticated])
+def set_self_destruct(request, message_id):
+    seconds = request.data.get('seconds', 300)  # default 5 menit
+    schedule_message_deletion.delay(str(message_id), int(seconds))
+    return Response({'message': f'Pesan akan terhapus dalam {seconds} detik'})

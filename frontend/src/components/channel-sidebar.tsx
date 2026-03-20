@@ -18,7 +18,6 @@ const channels = [
   { id: 3, name: "pengumuman", private: true },
   { id: 4, name: "tim-internal", private: false },
   { id: 5, name: "rekayasa", private: false },
-  { id: 6, name: "pemantauan-transaksi", private: false },
 ]
 
 const directMessages: any[] = []
