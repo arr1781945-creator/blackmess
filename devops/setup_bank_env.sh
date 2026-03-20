@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 # ================================================================
 # devops/setup_bank_env.sh
-# SecureBank Slack-Clone — Termux / Ubuntu auto-install script.
+# BlackMess — Termux / Ubuntu auto-install script.
 # Usage: bash setup_bank_env.sh
 # ================================================================
 
@@ -15,7 +15,7 @@ error()   { echo -e "${RED}[ERROR]${NC} $1"; exit 1; }
 
 echo -e "${CYAN}"
 echo "  ╔═══════════════════════════════════════╗"
-echo "  ║  SecureBank Messenger — Setup Script  ║"
+echo "  ║  BlackMess — Setup Script  ║"
 echo "  ╚═══════════════════════════════════════╝"
 echo -e "${NC}"
 
@@ -70,12 +70,12 @@ sleep 2
 
 # Create DB and user
 if $IS_TERMUX; then
-  createuser -s sbslack_admin 2>/dev/null || warn "User may already exist."
-  createdb -O sbslack_admin securebank_slack 2>/dev/null || warn "DB may already exist."
+  createuser -s blackmess_user 2>/dev/null || warn "User may already exist."
+  createdb -O blackmess_user blackmess_db 2>/dev/null || warn "DB may already exist."
 else
-  sudo -u postgres psql -c "CREATE USER sbslack_admin WITH ENCRYPTED PASSWORD 'CHANGE_THIS_PASSWORD';" 2>/dev/null || warn "User may exist."
-  sudo -u postgres psql -c "CREATE DATABASE securebank_slack OWNER sbslack_admin;" 2>/dev/null || warn "DB may exist."
-  sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE securebank_slack TO sbslack_admin;" 2>/dev/null || true
+  sudo -u postgres psql -c "CREATE USER blackmess_user WITH ENCRYPTED PASSWORD 'CHANGE_THIS_PASSWORD';" 2>/dev/null || warn "User may exist."
+  sudo -u postgres psql -c "CREATE DATABASE blackmess_db OWNER blackmess_user;" 2>/dev/null || warn "DB may exist."
+  sudo -u postgres psql -c "GRANT ALL PRIVILEGES ON DATABASE blackmess_db TO blackmess_user;" 2>/dev/null || true
 fi
 success "PostgreSQL configured."
 
@@ -170,10 +170,10 @@ echo -e "${GREEN}║  ✅  Setup Complete!                          ║${NC}"
 echo -e "${GREEN}╠═══════════════════════════════════════════════╣${NC}"
 echo -e "${GREEN}║${NC}  Start dev server:                            ${GREEN}║${NC}"
 echo -e "${GREEN}║${NC}    ${CYAN}source .venv/bin/activate${NC}                  ${GREEN}║${NC}"
-echo -e "${GREEN}║${NC}    ${CYAN}daphne -b 0.0.0.0 -p 8000 core.asgi:app${NC}   ${GREEN}║${NC}"
+echo -e "${GREEN}║${NC}    ${CYAN}daphne -b 0.0.0.0 -p 8000 myproject.asgi:application${NC}   ${GREEN}║${NC}"
 echo -e "${GREEN}║${NC}                                               ${GREEN}║${NC}"
 echo -e "${GREEN}║${NC}  Start Celery worker:                         ${GREEN}║${NC}"
-echo -e "${GREEN}║${NC}    ${CYAN}celery -A core worker -l INFO${NC}              ${GREEN}║${NC}"
+echo -e "${GREEN}║${NC}    ${CYAN}celery -A myproject worker -l INFO${NC}              ${GREEN}║${NC}"
 echo -e "${GREEN}║${NC}                                               ${GREEN}║${NC}"
 echo -e "${GREEN}║${NC}  API Docs:                                    ${GREEN}║${NC}"
 echo -e "${GREEN}║${NC}    ${CYAN}http://localhost:8000/api/docs/client/${NC}     ${GREEN}║${NC}"
