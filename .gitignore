@@ -8,3 +8,5 @@ liboqs-python/
 staticfiles/
 liboqs-python/
 liboqs/
+.env
+devops/.env
