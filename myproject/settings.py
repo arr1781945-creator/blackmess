@@ -546,3 +546,9 @@ DATABASES["db_20"] = {
     "PORT": env("DB_PORT"),
     "OPTIONS": {"sslmode": "disable"},
 }
+
+# Session Security Tambahan
+MAX_CONCURRENT_SESSIONS = 3  # Max 3 session per user
+SESSION_COOKIE_AGE = 28800   # 8 jam
+SESSION_SAVE_EVERY_REQUEST = True
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True

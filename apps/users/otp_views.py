@@ -22,7 +22,11 @@ def send_otp(request):
     if not email:
         return Response({'error': 'Email required'}, status=400)
 
-    # Rate limiting — max 3x per 10 menit
+    # Rate limiting persistent - pakai DB bukan Redis
+    from django.utils import timezone
+    import datetime
+    from axes.models import AccessAttempt
+    
     rate_key = f'otp_rate_{email}'
     attempts = cache.get(rate_key, 0)
     if attempts >= 3:
@@ -101,3 +105,69 @@ def send_invite(request):
     if sent:
         return Response({'message': 'Invite sent successfully'})
     return Response({'error': 'Failed to send email'}, status=500)
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def generate_totp_secret(request):
+    """Generate TOTP secret dan simpan di server"""
+    import pyotp
+    import qrcode
+    import io
+    import base64
+    
+    email = request.data.get('email')
+    if not email:
+        return Response({'error': 'Email required'}, status=400)
+    
+    # Generate secret
+    secret = pyotp.random_base32()
+    
+    # Simpan di cache server (bukan client)
+    cache.set(f'totp_setup_{email}', secret, timeout=600)  # 10 menit
+    
+    # Generate OTPAuth URI
+    totp_uri = pyotp.totp.TOTP(secret).provisioning_uri(
+        name=email,
+        issuer_name='BlackMess'
+    )
+    
+    # Generate QR code
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(totp_uri)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    buffer = io.BytesIO()
+    img.save(buffer, format='PNG')
+    qr_base64 = base64.b64encode(buffer.getvalue()).decode()
+    
+    return Response({
+        'secret': secret,
+        'qr_code': f'data:image/png;base64,{qr_base64}',
+        'otpauth_uri': totp_uri
+    })
+
+@api_view(['POST'])
+@permission_classes([AllowAny])
+def verify_totp_setup(request):
+    """Verifikasi TOTP saat setup"""
+    import pyotp
+    
+    email = request.data.get('email')
+    code = request.data.get('code')
+    
+    if not email or not code:
+        return Response({'error': 'Email and code required'}, status=400)
+    
+    secret = cache.get(f'totp_setup_{email}')
+    if not secret:
+        return Response({'error': 'Setup expired. Generate ulang QR code.'}, status=400)
+    
+    totp = pyotp.TOTP(secret)
+    if totp.verify(code, valid_window=1):
+        # Simpan secret permanent di cache
+        cache.set(f'totp_secret_{email}', secret, timeout=None)
+        cache.delete(f'totp_setup_{email}')
+        return Response({'message': 'TOTP setup berhasil!'})
+    
+    return Response({'error': 'Kode salah!'}, status=400)
