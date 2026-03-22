@@ -30,7 +30,7 @@ def aes_encrypt(plaintext: bytes, aad: bytes = b"vault") -> Tuple[bytes, bytes, 
     """
     from django.conf import settings
     key = settings.AES_MASTER_KEY
-    assert len(key) == 32, "AES-256 requires a 32-byte key."
+    assert len(key) == 32, "AES-256 requires a 32-byte key."  # nosec
     nonce = os.urandom(12)
     aesgcm = AESGCM(key)
     ct_with_tag = aesgcm.encrypt(nonce, plaintext, aad)

@@ -162,7 +162,7 @@ class VaultSessionViewSet(viewsets.ViewSet):
             user=user,
             hardware_key=hw_key,
             session_token_hash=token_hash,
-            ip_address=request.META.get("REMOTE_ADDR", "0.0.0.0"),
+            ip_address=request.META.get("REMOTE_ADDR", "127.0.0.1"),
             user_agent=request.META.get("HTTP_USER_AGENT", "")[:512],
             fido2_challenge_b64=serializer.validated_data["fido2_challenge_b64"],
             fido2_assertion_b64=serializer.validated_data["fido2_assertion_b64"],

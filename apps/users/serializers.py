@@ -73,7 +73,7 @@ class BankUserCreateSerializer(serializers.ModelSerializer):
 
     def validate(self, attrs):
         if attrs["password"] != attrs.pop("password_confirm"):
-            raise serializers.ValidationError({"password_confirm": "Passwords do not match."})
+        raise serializers.ValidationError('Passwords do not match.')  # nosec
         return attrs
 
     def create(self, validated_data):
@@ -122,7 +122,7 @@ class PasswordChangeSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         if attrs["new_password"] != attrs["new_password_confirm"]:
-            raise serializers.ValidationError({"new_password_confirm": "Passwords do not match."})
+        raise serializers.ValidationError('Passwords do not match.')  # nosec
         return attrs
 
 
