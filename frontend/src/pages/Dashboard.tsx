@@ -61,19 +61,7 @@ const CHANNEL_CONTENT: Record<string, any> = {
   },
 }
 
-const STATS = [
-  { label: 'Sesi Aktif', value: '2,847', change: '+12%', color: '#6366f1' },
-  { label: 'Pesan Hari Ini', value: '18,294', change: '+8%', color: '#8b5cf6' },
-  { label: 'Tugas Selesai', value: '142', change: '+23%', color: '#06b6d4' },
-  { label: 'Skor Keamanan', value: '98.5%', change: '+0.3%', color: '#10b981' },
-]
 
-const MESSAGES = [
-  { id: 1, user: 'Ahmad R.', avatar: 'AR', msg: 'Q3 compliance report siap direview', time: '09:42', online: true },
-  { id: 2, user: 'Sarah K.', avatar: 'SK', msg: 'Meeting trading desk jam 3 sore', time: '09:15', online: true },
-  { id: 3, user: 'Budi S.', avatar: 'BS', msg: 'KYC batch selesai — 847 records', time: '08:30', online: false },
-  { id: 4, user: 'Linda M.', avatar: 'LM', msg: 'Ada transaksi mencurigakan', time: '08:12', online: true },
-]
 
 // SVG Icons
 const HomeIcon = () => (

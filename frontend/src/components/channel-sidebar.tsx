@@ -148,7 +148,7 @@ export function ChannelSidebar({ onChannelChange }: { onChannelChange?: (channel
                       className={cn(
                         "absolute -bottom-0.5 -right-0.5 w-2 h-2 rounded-full border border-sidebar",
                         dm.status === "online" && "bg-green-500",
-                        dm.status === "offline" && "bg-gray-500",
+                        dm.status === "offline" && "bg-muted",
                         dm.status === "away" && "bg-yellow-500",
                         dm.status === "dnd" && "bg-red-500"
                       )}

@@ -22,7 +22,7 @@ const EmptyPage = ({ icon, title, desc }: { icon: React.ReactNode, title: string
 const EMOJIS = ['😀','😂','🥰','😎','🤔','😴','🥳','😭','🔥','💪','👍','👎','❤️','💯','🎉','✅','⚠️','🚀','💻','📱','🔐','💰','📊','🎯','🙏','👋','🤝','💡','📢','🔔']
 
 const EmojiPicker = ({ onSelect, onClose }: { onSelect: (e: string) => void, onClose: () => void }) => (
-  <div className="absolute bottom-14 left-0 bg-[#1a1a1a] border border-border rounded-xl p-3 shadow-xl z-50 w-64">
+  <div className="absolute bottom-14 left-0 bg-background border border-border rounded-xl p-3 shadow-xl z-50 w-64">
     <div className="grid grid-cols-6 gap-1">
       {EMOJIS.map(e => (
         <button key={e} onClick={() => { onSelect(e); onClose() }}
@@ -72,7 +72,7 @@ const DmsPage = ({ currentUser }: { currentUser: User }) => {
             <button key={m.id} onClick={() => setActiveDM(m.id)}
               className={`flex items-center gap-2.5 w-full px-3 py-2 rounded-lg text-sm transition-colors ${activeDM===m.id ? 'bg-sidebar-accent text-sidebar-accent-foreground' : 'text-sidebar-foreground hover:bg-sidebar-accent'}`}>
               <div className="relative flex-shrink-0">
-                <div className="w-7 h-7 rounded-full bg-[#222222] flex items-center justify-center text-white text-xs font-bold">{m.avatar}</div>
+                <div className="w-7 h-7 rounded-full bg-background flex items-center justify-center text-white text-xs font-bold">{m.avatar}</div>
                 <div className="absolute bottom-0 right-0 w-2.5 h-2.5 rounded-full bg-green-400 border-2 border-sidebar"/>
               </div>
               {m.name}
@@ -86,7 +86,7 @@ const DmsPage = ({ currentUser }: { currentUser: User }) => {
               placeholder="Nama anggota..."
               className="w-full px-3 py-2 rounded-lg bg-background border border-border text-foreground text-sm outline-none mb-2"/>
             <div className="flex gap-2">
-              <button onClick={addMember} className="flex-1 py-1.5 rounded-lg bg-white text-black text-xs font-bold">Tambah</button>
+              <button onClick={addMember} className="flex-1 py-1.5 rounded-lg bg-[#4A154B] text-white text-xs font-bold">Tambah</button>
               <button onClick={() => setShowAdd(false)} className="flex-1 py-1.5 rounded-lg bg-muted text-muted-foreground text-xs">Batal</button>
             </div>
           </div>
@@ -101,7 +101,7 @@ const DmsPage = ({ currentUser }: { currentUser: User }) => {
       {activeDM !== null && activeMember ? (
         <div className="flex-1 flex flex-col overflow-hidden">
           <div className="h-14 border-b border-border flex items-center px-4 gap-3 flex-shrink-0">
-            <div className="w-8 h-8 rounded-full bg-[#222222] flex items-center justify-center text-white text-sm font-bold">{activeMember.avatar}</div>
+            <div className="w-8 h-8 rounded-full bg-background flex items-center justify-center text-white text-sm font-bold">{activeMember.avatar}</div>
             <span className="text-foreground font-semibold">{activeMember.name}</span>
             <div className="flex-1"/>
             <button className="p-2 rounded-lg hover:bg-accent text-muted-foreground hover:text-foreground transition-colors">
@@ -117,7 +117,7 @@ const DmsPage = ({ currentUser }: { currentUser: User }) => {
             )}
             {(messages[activeDM]||[]).map((msg, i) => (
               <div key={i} className={`flex ${msg.mine ? 'justify-end' : 'justify-start'}`}>
-                <div className={`max-w-xs px-4 py-2 rounded-2xl text-sm ${msg.mine ? 'bg-white text-white' : 'bg-muted text-foreground'}`}>
+                <div className={`max-w-xs px-4 py-2 rounded-2xl text-sm ${msg.mine ? 'bg-background text-white' : 'bg-muted text-foreground'}`}>
                   <div>{msg.text}</div>
                   <div className="text-xs opacity-60 mt-0.5 text-right">{msg.time}</div>
                 </div>
@@ -134,7 +134,7 @@ const DmsPage = ({ currentUser }: { currentUser: User }) => {
                 onKeyDown={e => e.key==='Enter' && sendMsg()}
                 placeholder={`Pesan ke ${activeMember.name}`}
                 className="flex-1 bg-transparent outline-none text-foreground text-sm placeholder:text-muted-foreground"/>
-              <button onClick={sendMsg} className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${input ? 'bg-white text-black' : 'text-muted-foreground'}`}>
+              <button onClick={sendMsg} className={`w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${input ? 'bg-[#4A154B] text-white border border-orange-700' : 'text-muted-foreground'}`}>
                 <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/></svg>
               </button>
             </div>
@@ -167,11 +167,11 @@ const VideoCallPage = ({ user, onClose }: { user: User, onClose: () => void }) =
   const fmt = (s: number) => `${String(Math.floor(s/60)).padStart(2,'0')}:${String(s%60).padStart(2,'0')}`
 
   return (
-    <div className="fixed inset-0 bg-black z-50 flex flex-col">
+    <div className="fixed inset-0 bg-background z-50 flex flex-col">
       {/* Remote (placeholder) */}
-      <div className="flex-1 bg-[#111] flex items-center justify-center relative">
+      <div className="flex-1 bg-background flex items-center justify-center relative">
         <div className="text-center">
-          <div className="w-24 h-24 rounded-full bg-[#222222] flex items-center justify-center text-white text-4xl font-bold mx-auto mb-4">
+          <div className="w-24 h-24 rounded-full bg-background flex items-center justify-center text-white text-4xl font-bold mx-auto mb-4">
             {user.avatar}
           </div>
           <p className="text-white font-semibold text-lg">{user.name}</p>
@@ -179,16 +179,16 @@ const VideoCallPage = ({ user, onClose }: { user: User, onClose: () => void }) =
         </div>
 
         {/* Local video */}
-        <div className="absolute bottom-4 right-4 w-24 h-32 rounded-xl overflow-hidden bg-[#222] border border-gray-700">
+        <div className="absolute bottom-4 right-4 w-24 h-32 rounded-xl overflow-hidden bg-background border border-gray-700">
           <video ref={localVideoRef} autoPlay muted playsInline className="w-full h-full object-cover"/>
-          {videoOff && <div className="absolute inset-0 bg-[#222] flex items-center justify-center"><span className="text-white text-xs">{user.avatar}</span></div>}
+          {videoOff && <div className="absolute inset-0 bg-background flex items-center justify-center"><span className="text-white text-xs">{user.avatar}</span></div>}
         </div>
       </div>
 
       {/* Controls */}
-      <div className="h-24 bg-[#0a0a0a] border-t border-gray-800 flex items-center justify-center gap-6">
+      <div className="h-24 bg-background border-t border-gray-800 flex items-center justify-center gap-6">
         <button onClick={() => setMuted(!muted)}
-          className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${muted ? 'bg-red-500 text-white' : 'bg-[#222] text-white hover:bg-[#333]'}`}>
+          className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${muted ? 'bg-red-500 text-white' : 'bg-background text-white hover:bg-background'}`}>
           {muted
             ? <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z" clipRule="evenodd"/><path strokeLinecap="round" strokeLinejoin="round" d="M17 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2"/></svg>
             : <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/></svg>
@@ -196,7 +196,7 @@ const VideoCallPage = ({ user, onClose }: { user: User, onClose: () => void }) =
         </button>
 
         <button onClick={() => setVideoOff(!videoOff)}
-          className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${videoOff ? 'bg-red-500 text-white' : 'bg-[#222] text-white hover:bg-[#333]'}`}>
+          className={`w-12 h-12 rounded-full flex items-center justify-center transition-colors ${videoOff ? 'bg-red-500 text-white' : 'bg-background text-white hover:bg-background'}`}>
           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>
         </button>
 
@@ -205,7 +205,7 @@ const VideoCallPage = ({ user, onClose }: { user: User, onClose: () => void }) =
           <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 8l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2M5 3a2 2 0 00-2 2v1c0 8.284 6.716 15 15 15h1a2 2 0 002-2v-3.28a1 1 0 00-.684-.948l-4.493-1.498a1 1 0 00-1.21.502l-1.13 2.257a11.042 11.042 0 01-5.516-5.517l2.257-1.128a1 1 0 00.502-1.21L9.228 3.683A1 1 0 008.279 3H5z"/></svg>
         </button>
 
-        <button className="w-12 h-12 rounded-full bg-[#222] text-white hover:bg-[#333] flex items-center justify-center transition-colors">
+        <button className="w-12 h-12 rounded-full bg-background text-white hover:bg-background flex items-center justify-center transition-colors">
           <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z"/></svg>
         </button>
       </div>
@@ -244,8 +244,8 @@ const VaultPage = () => {
         <input type="password" placeholder="Kata sandi database" value={pass}
           onChange={e => setPass(e.target.value)}
           onKeyDown={e => e.key === 'Enter' && unlock()}
-          className="w-full px-4 py-3 rounded-xl bg-[#111] border border-gray-700 text-white text-sm outline-none focus:border-white mb-3"/>
-        <button onClick={unlock} className="w-full py-3 rounded-xl bg-white text-black font-bold text-sm hover:bg-gray-100">Buka Brankas</button>
+          className="w-full px-4 py-3 rounded-xl bg-background border border-gray-700 text-white text-sm outline-none focus:border-white mb-3"/>
+        <button onClick={unlock} className="w-full py-3 rounded-xl bg-[#4A154B] text-white font-bold text-sm hover:bg-muted">Buka Brankas</button>
       </div>
     </div>
   )
@@ -286,8 +286,8 @@ const SettingsPage = () => {
 
   const Toggle = ({ val, onChange }: { val: boolean, onChange: () => void }) => (
     <button onClick={onChange}
-      className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${val ? 'bg-white' : 'bg-gray-700'}`}>
-      <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all ${val ? 'left-6' : 'left-1'}`}/>
+      className={`w-11 h-6 rounded-full transition-colors relative flex-shrink-0 ${val ? 'bg-background' : 'bg-muted'}`}>
+      <div className={`w-4 h-4 rounded-full bg-background absolute top-1 transition-all ${val ? 'left-6' : 'left-1'}`}/>
     </button>
   )
 
@@ -353,7 +353,7 @@ const SettingsPage = () => {
           <div className="grid grid-cols-3 gap-2">
             {[{val:'dark',label:'Gelap'},{val:'light',label:'Terang'},{val:'system',label:'Sistem'}].map(t => (
               <button key={t.val} onClick={() => setTheme(t.val)}
-                className={`py-2 rounded-lg text-sm font-medium transition-colors ${theme===t.val ? 'bg-white text-black' : 'bg-background text-muted-foreground border border-border'}`}>
+                className={`py-2 rounded-lg text-sm font-medium transition-colors ${theme===t.val ? 'bg-background text-white' : 'bg-background text-muted-foreground border border-border'}`}>
                 {t.label}
               </button>
             ))}
@@ -472,7 +472,7 @@ const InvitePage = ({ user }: { user: User }) => {
               onKeyDown={e => e.key==='Enter' && handleInvite()}
               placeholder="nama@perusahaan.com"
               className="flex-1 px-3 py-2.5 rounded-lg bg-background border border-border text-foreground text-sm outline-none focus:border-white"/>
-            <button onClick={handleInvite} className="px-4 py-2.5 rounded-lg bg-white text-black font-bold text-sm flex-shrink-0">Kirim</button>
+            <button onClick={handleInvite} className="px-4 py-2.5 rounded-lg bg-background text-white font-bold text-sm flex-shrink-0">Kirim</button>
           </div>
         </div>
         {sent.length > 0 ? (
@@ -619,7 +619,7 @@ const CompliancePage = ({ currentUser }: { currentUser: any }) => {
               { holder:'Vault Fisik Bank', index:3, active:false },
             ].map(k => (
               <div key={k.index} className="flex items-center gap-3 py-2 border-b border-border last:border-0">
-                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${k.active ? 'bg-green-400' : 'bg-gray-600'}`}/>
+                <div className={`w-2 h-2 rounded-full flex-shrink-0 ${k.active ? 'bg-green-400' : 'bg-muted'}`}/>
                 <span className="text-foreground text-sm flex-1">Key {k.index}: {k.holder}</span>
                 <span className={`text-xs ${k.active ? 'text-green-400' : 'text-muted-foreground'}`}>{k.active ? 'Terdaftar' : 'Pending'}</span>
               </div>
@@ -672,7 +672,7 @@ const CompliancePage = ({ currentUser }: { currentUser: any }) => {
               Excel
             </a>
             <a href="http://localhost:8002/api/v1/compliance/export/json/?days=30"
-              className="py-2.5 rounded-xl bg-blue-500/10 border border-blue-500/30 text-blue-400 text-xs font-medium text-center hover:bg-blue-500/20 transition-colors">
+              className="py-2.5 rounded-xl bg-accent/10 border border-blue-500/30 text-blue-400 text-xs font-medium text-center hover:bg-accent/20 transition-colors">
               JSON
             </a>
           </div>
@@ -773,7 +773,7 @@ Gunakan bahasa Indonesia yang profesional, ringkas dan tepat sasaran.`,
     <div className="flex-1 flex flex-col overflow-hidden bg-background">
       {/* Header */}
       <div className="flex items-center gap-3 px-6 py-4 border-b border-border flex-shrink-0">
-        <div className="w-9 h-9 rounded-xl bg-gray-800 flex items-center justify-center flex-shrink-0">
+        <div className="w-9 h-9 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
           <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
             <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
           </svg>
@@ -793,14 +793,14 @@ Gunakan bahasa Indonesia yang profesional, ringkas dan tepat sasaran.`,
         {messages.map((m, i) => (
           <div key={i} className={`flex gap-3 ${m.role === 'user' ? 'justify-end' : 'justify-start'}`}>
             {m.role === 'assistant' && (
-              <div className="w-8 h-8 rounded-xl bg-gray-800 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center flex-shrink-0 mt-0.5">
                 <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
                 </svg>
               </div>
             )}
             <div className={`max-w-xs lg:max-w-md xl:max-w-lg ${m.role === 'user' ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
-              <div className={`px-4 py-3 rounded-2xl text-sm whitespace-pre-wrap ${m.role === 'user' ? 'bg-white text-black rounded-tr-sm' : 'bg-accent text-foreground rounded-tl-sm border border-border'}`}>
+              <div className={`px-4 py-3 rounded-2xl text-sm whitespace-pre-wrap ${m.role === 'user' ? 'bg-background text-white rounded-tr-sm' : 'bg-accent text-foreground rounded-tl-sm border border-border'}`}>
                 {m.content}
               </div>
               <span className="text-muted-foreground text-xs">{m.time}</span>
@@ -815,16 +815,16 @@ Gunakan bahasa Indonesia yang profesional, ringkas dan tepat sasaran.`,
 
         {loading && (
           <div className="flex gap-3 justify-start">
-            <div className="w-8 h-8 rounded-xl bg-gray-800 flex items-center justify-center flex-shrink-0">
+            <div className="w-8 h-8 rounded-xl bg-muted flex items-center justify-center flex-shrink-0">
               <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
               </svg>
             </div>
             <div className="bg-accent border border-border px-4 py-3 rounded-2xl rounded-tl-sm">
               <div className="flex gap-1">
-                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{animationDelay:'0ms'}}/>
-                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{animationDelay:'150ms'}}/>
-                <div className="w-2 h-2 rounded-full bg-gray-400 animate-bounce" style={{animationDelay:'300ms'}}/>
+                <div className="w-2 h-2 rounded-full bg-muted animate-bounce" style={{animationDelay:'0ms'}}/>
+                <div className="w-2 h-2 rounded-full bg-muted animate-bounce" style={{animationDelay:'150ms'}}/>
+                <div className="w-2 h-2 rounded-full bg-muted animate-bounce" style={{animationDelay:'300ms'}}/>
               </div>
             </div>
           </div>
@@ -855,7 +855,7 @@ Gunakan bahasa Indonesia yang profesional, ringkas dan tepat sasaran.`,
             placeholder="Tanya BlackMess AI..."
             className="flex-1 bg-transparent outline-none text-sm text-foreground placeholder:text-muted-foreground"/>
           <button onClick={() => sendMessage()}
-            className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${input && !loading ? 'bg-white text-black' : 'text-muted-foreground'}`}
+            className={`p-1.5 rounded-lg transition-colors flex-shrink-0 ${input && !loading ? 'bg-[#4A154B] text-white' : 'text-muted-foreground'}`}
             disabled={loading}>
             <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8"/>
@@ -864,6 +864,71 @@ Gunakan bahasa Indonesia yang profesional, ringkas dan tepat sasaran.`,
         </div>
         <p className="text-muted-foreground text-xs text-center mt-2">BlackMess AI bisa membuat kesalahan. Verifikasi informasi penting.</p>
       </div>
+    </div>
+  )
+}
+
+
+// ─── Search Page ──────────────────────────────────────────────────────────────
+const SearchPage = ({ messages }: { messages: any[] }) => {
+  const [query, setQuery] = useState('')
+  const [results, setResults] = useState<any[]>([])
+
+  const handleSearch = (q: string) => {
+    setQuery(q)
+    if (!q.trim()) { setResults([]); return }
+    // Search di localStorage messages
+    const allMessages: any[] = []
+    setResults(allMessages.filter(m =>
+      m.content?.toLowerCase().includes(q.toLowerCase()) ||
+      m.user?.toLowerCase().includes(q.toLowerCase())
+    ))
+  }
+
+  return (
+    <div className="flex-1 overflow-y-auto bg-background p-6">
+      <h2 className="text-foreground font-bold text-xl mb-4">Cari</h2>
+      <div className="flex items-center gap-2 bg-accent rounded-xl px-4 py-3 border border-border mb-6">
+        <svg className="w-5 h-5 text-muted-foreground flex-shrink-0" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+          <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+        </svg>
+        <input autoFocus type="text" value={query} onChange={e => handleSearch(e.target.value)}
+          placeholder="Cari pesan, file, anggota..."
+          className="flex-1 bg-transparent outline-none text-foreground text-sm placeholder:text-muted-foreground"/>
+        {query && <button onClick={() => handleSearch('')} className="text-muted-foreground hover:text-foreground">✕</button>}
+      </div>
+
+      {query && results.length === 0 && (
+        <div className="text-center py-12">
+          <svg className="w-12 h-12 text-muted-foreground mx-auto mb-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <p className="text-muted-foreground text-sm">Tidak ada hasil untuk "{query}"</p>
+        </div>
+      )}
+
+      {!query && (
+        <div className="text-center py-12">
+          <svg className="w-12 h-12 text-muted-foreground mx-auto mb-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+            <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/>
+          </svg>
+          <p className="text-muted-foreground text-sm">Ketik untuk mulai mencari</p>
+        </div>
+      )}
+
+      {results.map((r, i) => (
+        <div key={i} className="flex items-start gap-3 p-4 rounded-xl bg-accent border border-border mb-2">
+          <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-white text-xs font-bold flex-shrink-0">{r.avatar}</div>
+          <div className="flex-1">
+            <div className="flex items-center gap-2">
+              <span className="text-foreground font-semibold text-sm">{r.user}</span>
+              <span className="text-muted-foreground text-xs">#{r.channel}</span>
+              <span className="text-muted-foreground text-xs">{r.time}</span>
+            </div>
+            <p className="text-foreground text-sm mt-0.5">{r.content}</p>
+          </div>
+        </div>
+      ))}
     </div>
   )
 }
@@ -877,8 +942,11 @@ const ActivityPage = () => {
     { id:4, type:'invite', text:'Undangan kamu diterima', time:'2 jam lalu', read:true },
   ])
 
-  const icons: Record<string, string> = {
-    mention: '@', reply: '↩', join: '👤', invite: '✉️'
+  const icons: Record<string, JSX.Element> = {
+    mention: <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"/></svg>,
+    reply: <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 10h10a8 8 0 018 8v2M3 10l6 6m-6-6l6-6"/></svg>,
+    join: <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z"/></svg>,
+    invite: <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>,
   }
 
   return (
@@ -887,12 +955,12 @@ const ActivityPage = () => {
       <div className="max-w-lg space-y-2">
         {activities.map(a => (
           <div key={a.id} className={`flex items-start gap-3 p-4 rounded-xl border transition-colors ${!a.read ? 'bg-accent border-border' : 'border-transparent hover:bg-accent'}`}>
-            <div className="w-9 h-9 rounded-full bg-gray-800 flex items-center justify-center text-sm flex-shrink-0">{icons[a.type]}</div>
+            <div className="w-9 h-9 rounded-full bg-muted flex items-center justify-center flex-shrink-0">{icons[a.type]}</div>
             <div className="flex-1">
               <p className="text-foreground text-sm">{a.text}</p>
               <p className="text-muted-foreground text-xs mt-0.5">{a.time}</p>
             </div>
-            {!a.read && <div className="w-2 h-2 rounded-full bg-white flex-shrink-0 mt-2"/>}
+            {!a.read && <div className="w-2 h-2 rounded-full bg-background flex-shrink-0 mt-2"/>}
           </div>
         ))}
       </div>
@@ -921,7 +989,7 @@ const SavedPage = () => {
             {saved.map((s: any, i: number) => (
               <div key={i} className="p-4 rounded-xl bg-accent border border-border">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-7 h-7 rounded-full bg-gray-800 flex items-center justify-center text-white text-xs font-bold">{s.avatar}</div>
+                  <div className="w-7 h-7 rounded-full bg-muted flex items-center justify-center text-white text-xs font-bold">{s.avatar}</div>
                   <span className="text-foreground text-sm font-semibold">{s.user}</span>
                   <span className="text-muted-foreground text-xs">#{s.channel}</span>
                 </div>
@@ -976,7 +1044,7 @@ const FilesPage = ({ currentUser }: { currentUser: any }) => {
       <p className="text-muted-foreground text-sm mb-6">Semua file yang dibagikan di workspace</p>
 
       {/* Upload zone */}
-      <div className={`border-2 border-dashed rounded-xl p-8 text-center mb-6 transition-colors ${dragging ? 'border-white bg-white/5' : 'border-gray-700 hover:border-gray-500'}`}>
+      <div className={`border-2 border-dashed rounded-xl p-8 text-center mb-6 transition-colors ${dragging ? 'border-white bg-background/5' : 'border-gray-700 hover:border-gray-500'}`}>
         <svg className="w-10 h-10 text-muted-foreground mx-auto mb-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
         <p className="text-foreground text-sm font-medium">Drag & drop file di sini</p>
         <p className="text-muted-foreground text-xs mt-1">Gambar, PDF, dokumen — Maks 10MB</p>
@@ -988,7 +1056,7 @@ const FilesPage = ({ currentUser }: { currentUser: any }) => {
         <div className="space-y-2">
           {files.map((f: any, i: number) => (
             <div key={i} className="flex items-center gap-3 p-3 rounded-xl bg-accent border border-border">
-              <div className="w-10 h-10 rounded-lg bg-gray-800 flex items-center justify-center flex-shrink-0">
+              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center flex-shrink-0">
                 {f.type?.startsWith('image/') ? (
                   <img src={f.url} alt={f.name} className="w-full h-full object-cover rounded-lg"/>
                 ) : (
@@ -1033,8 +1101,8 @@ const AppsPage = () => {
       <div className="max-w-lg space-y-3">
         {apps.map(app => (
           <div key={app.name} className="flex items-center gap-4 p-4 rounded-xl bg-accent border border-border">
-            <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center flex-shrink-0 p-1.5">
-              <img src={app.logo} alt={app.name} className="w-full h-full object-contain"/>
+            <div className="w-10 h-10 rounded-xl bg-background flex items-center justify-center flex-shrink-0 p-1.5">
+              <img src={app.logo} alt={app.name} className="w-full h-full object-contain" style={{filter: ['GitHub','Jira','Notion','Trello','Slack'].includes(app.name) ? 'invert(1)' : 'none'}}/>
             </div>
             <div className="flex-1 min-w-0">
               <div className="text-foreground font-semibold text-sm">{app.name}</div>
@@ -1046,7 +1114,7 @@ const AppsPage = () => {
                 Buka
               </button>
               <button onClick={() => setConnected(prev => prev.includes(app.name) ? prev.filter(a => a !== app.name) : [...prev, app.name])}
-                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${connected.includes(app.name) ? 'bg-gray-700 text-white' : 'bg-white text-black'}`}>
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-colors ${connected.includes(app.name) ? 'bg-gray-700 text-white' : 'bg-background text-white'}`}>
                 {connected.includes(app.name) ? '✓ Aktif' : 'Hubungkan'}
               </button>
             </div>
@@ -1062,12 +1130,14 @@ const MorePage = ({ onNav }: { onNav: (page: string) => void }) => (
   <div className="flex-1 overflow-y-auto bg-background p-6">
     <h2 className="text-foreground font-bold text-xl mb-6">Lainnya</h2>
     {[
-      { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>, label: 'Brankas', desc: 'Penyimpanan data sensitif terenkripsi', page: 'vault' },
-      { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 10l4.553-2.069A1 1 0 0121 8.87v6.26a1 1 0 01-1.447.894L15 14M5 18h8a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v8a2 2 0 002 2z"/></svg>, label: 'Video Call', desc: 'Panggilan video terenkripsi', page: 'videocall' },
-      { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>, label: 'Anggota', desc: 'Undang anggota workspace', page: 'invite' },
-      { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>, label: 'Pengaturan', desc: 'Notifikasi, bahasa, tema, keamanan', page: 'settings' },
+          { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/></svg>, label: 'Brankas', desc: 'Penyimpanan data sensitif terenkripsi', page: 'vault' },
+      { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M5 5a2 2 0 012-2h10a2 2 0 012 2v16l-7-3.5L5 21V5z"/></svg>, label: 'Tersimpan', desc: 'Pesan yang kamu simpan', page: 'saved' },
+      { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-6l-2-2H5a2 2 0 00-2 2z"/></svg>, label: 'Berkas', desc: 'File yang dibagikan di workspace', page: 'files' },
+      { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z"/></svg>, label: 'Anggota', desc: 'Kelola dan undang anggota', page: 'invite' },
+      { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zm10 0a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg>, label: 'Aplikasi', desc: 'Integrasi dengan aplikasi lain', page: 'apps' },
       { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>, label: 'Analitik', desc: 'Laporan dan metrik workspace', page: '' },
       { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/></svg>, label: 'Compliance', desc: 'Dashboard OJK/BI standar audit', page: 'compliance' },
+      { icon: <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>, label: 'Pengaturan', desc: 'Profil dan preferensi', page: 'profile' },
     ].map(item => (
       <div key={item.label} onClick={() => item.page && onNav(item.page)}
         className="flex items-center gap-4 p-4 rounded-xl bg-accent mb-3 cursor-pointer hover:bg-muted transition-colors">
@@ -1083,77 +1153,701 @@ const MorePage = ({ onNav }: { onNav: (page: string) => void }) => (
 )
 
 // ─── Profile Page ─────────────────────────────────────────────────────────────
-const ProfilePage = ({ user, onLogout, onBack }: { user: User, onLogout: () => void, onBack: () => void }) => {
-  const [name, setName] = useState(user.name)
+const ProfilePage = ({ user, onLogout, onBack }: { user: any, onLogout: () => void, onBack: () => void }) => {
+  const [activeTab, setActiveTab] = useState('profil')
   const [saved, setSaved] = useState(false)
-  const [status, setStatus] = useState<'online'|'away'|'busy'|'offline'>('online')
 
-  const statusConfig = {
-    online: { color: 'bg-green-400', label: 'Aktif' },
-    away: { color: 'bg-yellow-400', label: 'Pergi' },
-    busy: { color: 'bg-red-400', label: 'Sibuk' },
-    offline: { color: 'bg-gray-500', label: 'Offline' },
+  // Profil
+  const [name, setName] = useState(user?.name || '')
+  const [title, setTitle] = useState('')
+  const [dept, setDept] = useState('')
+  const [phone, setPhone] = useState('')
+  const [timezone, setTimezone] = useState('WIB')
+  const [status, setStatus] = useState('online')
+  const [customStatus, setCustomStatus] = useState('')
+  const [statusExpiry, setStatusExpiry] = useState('never')
+
+  // Notifikasi
+  const [notifDesktop, setNotifDesktop] = useState(true)
+  const [notifMobile, setNotifMobile] = useState(true)
+  const [notifSound, setNotifSound] = useState(true)
+  const [notifMention, setNotifMention] = useState(true)
+  const [notifDM, setNotifDM] = useState(true)
+  const [notifThread, setNotifThread] = useState(true)
+  const [notifReaction, setNotifReaction] = useState(true)
+  const [notifEmail, setNotifEmail] = useState(false)
+  const [dndEnabled, setDndEnabled] = useState(false)
+  const [dndStart, setDndStart] = useState('22:00')
+  const [dndEnd, setDndEnd] = useState('07:00')
+  const [dndWeekend, setDndWeekend] = useState(true)
+  const [keywords, setKeywords] = useState('')
+  const [soundType, setSoundType] = useState('ding')
+
+  // Tampilan
+  const [theme, setTheme] = useState(localStorage.getItem('bm_theme') || 'dark')
+  const [syncOS, setSyncOS] = useState(false)
+  const [compact, setCompact] = useState(false)
+  const [fontSize, setFontSize] = useState('normal')
+  const [animations, setAnimations] = useState(true)
+  const [cleanerFont, setCleanerFont] = useState(false)
+  const [highContrast, setHighContrast] = useState(false)
+  const [showAvatar, setShowAvatar] = useState(true)
+  const [showPreview, setShowPreview] = useState(true)
+  const [colorblind, setColorblind] = useState('none')
+
+  // Privasi
+  const [showOnline, setShowOnline] = useState(true)
+  const [readReceipt, setReadReceipt] = useState(true)
+  const [showTyping, setShowTyping] = useState(true)
+  const [allowDM, setAllowDM] = useState('everyone')
+  const [showEmail, setShowEmail] = useState(false)
+  const [showPhone, setShowPhone] = useState(false)
+
+  // Pesan
+  const [enterSend, setEnterSend] = useState(true)
+  const [linkPreview, setLinkPreview] = useState(true)
+  const [spellCheck, setSpellCheck] = useState(true)
+  const [autoDestruct, setAutoDestruct] = useState(false)
+  const [destructTime, setDestructTime] = useState('7d')
+  const [emojiSkin, setEmojiSkin] = useState('default')
+
+  // Bahasa
+  const [lang, setLang] = useState('id')
+  const [dateFormat, setDateFormat] = useState('DD/MM/YYYY')
+  const [timeFormat, setTimeFormat] = useState('24h')
+  const [weekStart, setWeekStart] = useState('monday')
+
+  // Admin
+  const [allowInvite, setAllowInvite] = useState('admin')
+  const [allowChannel, setAllowChannel] = useState('everyone')
+  const [defaultChannelPublic, setDefaultChannelPublic] = useState(true)
+  const [retentionDays, setRetentionDays] = useState('365')
+  const [requireMFA, setRequireMFA] = useState(true)
+  const [allowedDomains, setAllowedDomains] = useState('')
+  const [guestAccess, setGuestAccess] = useState(false)
+
+  const Toggle = ({ val, onChange }: { val: boolean, onChange: () => void }) => (
+    <button onClick={onChange}
+      className={`w-11 h-6 rounded-full transition-all relative flex-shrink-0 ${val ? 'bg-[#4A154B]' : 'bg-gray-600'}`}>
+      <div className={`w-4 h-4 rounded-full bg-white absolute top-1 transition-all ${val ? 'left-6' : 'left-1'}`}/>
+    </button>
+  )
+
+  const Row = ({ label, desc, children }: { label: string, desc?: string, children: React.ReactNode }) => (
+    <div className="flex items-center justify-between py-3 border-b border-border last:border-0">
+      <div className="flex-1 pr-4">
+        <div className="text-white text-sm font-medium">{label}</div>
+        {desc && <div className="text-gray-400 text-xs mt-0.5">{desc}</div>}
+      </div>
+      <div className="flex-shrink-0">{children}</div>
+    </div>
+  )
+
+  const Section = ({ title, children }: { title: string, children: React.ReactNode }) => (
+    <div className="bg-accent border border-border rounded-xl p-4 mb-3">
+      <h3 className="text-white font-semibold text-sm mb-3 pb-2 border-b border-border">{title}</h3>
+      {children}
+    </div>
+  )
+
+  const applyTheme = (t: string) => {
+    setTheme(t)
+    localStorage.setItem('bm_theme', t)
+    const root = document.documentElement
+    if (t === 'light') { root.classList.add('light'); root.classList.remove('dark') }
+    else { root.classList.remove('light'); root.classList.add('dark') }
   }
 
-  return (
-    <div className="flex-1 overflow-y-auto bg-background p-6">
-      <div className="flex items-center gap-3 mb-6">
-        <button onClick={onBack} className="p-2 rounded-lg hover:bg-accent text-muted-foreground">
-          <svg className="w-5 h-5" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
-        </button>
-        <h2 className="text-foreground font-bold text-xl">Profil</h2>
-      </div>
-      <div className="max-w-md">
-        <div className="flex items-center gap-4 mb-6 p-4 rounded-xl bg-accent border border-border">
-          <div className="w-16 h-16 rounded-full bg-[#222222] flex items-center justify-center text-white text-2xl font-bold">{user.avatar}</div>
-          <div>
-            <div className="text-foreground font-bold text-lg">{user.name}</div>
-            <div className="text-muted-foreground text-sm">{user.email}</div>
-            <div className="flex items-center gap-1 mt-1">
-              <div className={`w-2 h-2 rounded-full ${statusConfig[status].color}`}/>
-              <span className="text-xs text-muted-foreground">{statusConfig[status].label}</span>
-            </div>
-          </div>
-        </div>
-        {/* Status otomatis */}
-        <div className="bg-accent border border-border rounded-xl p-4 mb-4">
-          <h3 className="text-foreground font-semibold text-sm mb-3">Status</h3>
-          <div className="flex items-center gap-3 p-3 rounded-lg bg-background border border-border">
-            <div className="w-3 h-3 rounded-full bg-green-400 animate-pulse flex-shrink-0"/>
-            <div>
-              <div className="text-foreground text-sm font-medium">Aktif</div>
-              <div className="text-muted-foreground text-xs">Status diatur otomatis berdasarkan aktivitas</div>
-            </div>
-          </div>
-          <p className="text-muted-foreground text-xs mt-2">• Aktif saat menggunakan aplikasi<br/>• Pergi setelah 5 menit tidak aktif<br/>• Offline saat aplikasi ditutup</p>
-        </div>
+  const tabs = [
+    { id:'profil', label:'Profil & Akun' },
+    { id:'notif', label:'Notifikasi' },
+    { id:'tampilan', label:'Tampilan' },
+    { id:'pesan', label:'Pesan & Media' },
+    { id:'privasi', label:'Privasi' },
+    { id:'saluran', label:'Saluran & Ruang' },
+    { id:'keamanan', label:'Keamanan' },
+    { id:'bahasa', label:'Bahasa & Wilayah' },
+    { id:'admin', label:'Administrasi' },
+    { id:'integrasi', label:'Integrasi' },
+    { id:'pintasan', label:'Pintasan' },
+    { id:'tentang', label:'Tentang' },
+  ]
 
-        <div className="flex flex-col gap-4 mb-6">
-          <div>
-            <label className="text-sm font-medium text-muted-foreground block mb-1.5">Nama tampilan</label>
-            <input type="text" value={name} onChange={e => { setName(e.target.value); setSaved(false) }}
-              className="w-full px-3 py-2.5 rounded-lg bg-accent border border-border text-foreground text-sm outline-none focus:border-white"/>
-          </div>
-          <div>
-            <label className="text-sm font-medium text-muted-foreground block mb-1.5">Email</label>
-            <input type="text" value={user.email} disabled
-              className="w-full px-3 py-2.5 rounded-lg bg-muted border border-border text-muted-foreground text-sm cursor-not-allowed"/>
-          </div>
-          <button onClick={() => setSaved(true)}
-            className="w-full py-2.5 rounded-lg bg-white text-black font-bold text-sm hover:bg-gray-100">
-            {saved ? '✓ Tersimpan' : 'Simpan perubahan'}
+  return (
+    <div className="flex-1 flex overflow-hidden bg-background">
+      {/* Sidebar tabs */}
+      <div className="w-52 border-r border-border flex flex-col flex-shrink-0 overflow-y-auto bg-sidebar">
+        <div className="p-4 border-b border-sidebar-border flex items-center gap-2">
+          <button onClick={onBack} className="p-1 rounded hover:bg-sidebar-accent text-white">
+            <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/></svg>
           </button>
+          <span className="text-white font-semibold text-sm">Pengaturan</span>
         </div>
-        <div className="border-t border-border pt-4">
-          <button onClick={onLogout}
-            className="w-full py-2.5 rounded-lg border border-red-500/30 text-red-400 font-semibold text-sm hover:bg-red-500/10">
-            Keluar dari akun
-          </button>
+        <div className="p-2 flex-1">
+          {tabs.map(t => (
+            <button key={t.id} onClick={() => setActiveTab(t.id)}
+              className={`w-full text-left px-3 py-2 rounded-lg text-xs transition-colors mb-0.5 ${activeTab===t.id ? 'bg-[#4A154B] text-white font-medium' : 'text-gray-300 hover:bg-sidebar-accent hover:text-white'}`}>
+              {t.label}
+            </button>
+          ))}
+          <div className="border-t border-sidebar-border mt-2 pt-2">
+            <button onClick={onLogout} className="w-full text-left px-3 py-2 rounded-lg text-xs text-red-400 hover:bg-red-500/10 transition-colors">
+              Keluar
+            </button>
+          </div>
         </div>
+      </div>
+
+      {/* Content */}
+      <div className="flex-1 overflow-y-auto p-6">
+
+        {/* ── PROFIL & AKUN ── */}
+        {activeTab === 'profil' && (
+          <div className="max-w-lg">
+            <h2 className="text-white font-bold text-xl mb-6">Profil & Akun</h2>
+
+            <Section title="Informasi Profil">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="relative">
+                  <div className="w-16 h-16 rounded-full bg-[#4A154B] flex items-center justify-center text-white text-2xl font-bold">{user?.avatar || 'U'}</div>
+                  <button className="absolute bottom-0 right-0 w-6 h-6 rounded-full bg-white flex items-center justify-center">
+                    <svg className="w-3 h-3 text-black" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                  </button>
+                </div>
+                <div>
+                  <div className="text-white font-bold">{user?.name}</div>
+                  <div className="text-gray-400 text-sm">{user?.email}</div>
+                </div>
+              </div>
+              {[
+                ['Nama tampilan', name, setName, 'text', 'Nama kamu di workspace'],
+                ['Jabatan', title, setTitle, 'text', 'Contoh: Senior Engineer'],
+                ['Departemen', dept, setDept, 'text', 'Contoh: Engineering'],
+                ['Nomor telepon', phone, setPhone, 'tel', '+62 812 xxxx xxxx'],
+              ].map(([label, val, setter, type, placeholder]: any) => (
+                <div key={label} className="mb-3">
+                  <label className="text-gray-400 text-xs block mb-1">{label}</label>
+                  <input type={type} value={val} onChange={e => setter(e.target.value)} placeholder={placeholder}
+                    className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-white text-sm outline-none focus:border-[#4A154B]"/>
+                </div>
+              ))}
+            </Section>
+
+            <Section title="Status Kustom">
+              <Row label="Status kehadiran" desc="Atur status tampil ke anggota lain">
+                <select value={status} onChange={e => setStatus(e.target.value)}
+                  className="bg-muted border border-border text-white text-xs rounded-lg px-2 py-1.5 outline-none">
+                  <option value="online">🟢 Aktif</option>
+                  <option value="away">🟡 Pergi</option>
+                  <option value="busy">🔴 Sibuk</option>
+                  <option value="offline">⚫ Offline</option>
+                </select>
+              </Row>
+              <div className="mt-2">
+                <label className="text-gray-400 text-xs block mb-1">Status kustom</label>
+                <input type="text" value={customStatus} onChange={e => setCustomStatus(e.target.value)}
+                  placeholder="Contoh: Dalam rapat sampai jam 3"
+                  className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-white text-sm outline-none focus:border-[#4A154B] mb-2"/>
+                <label className="text-gray-400 text-xs block mb-1">Hapus status otomatis</label>
+                <select value={statusExpiry} onChange={e => setStatusExpiry(e.target.value)}
+                  className="w-full bg-muted border border-border text-white text-xs rounded-lg px-2 py-1.5 outline-none">
+                  <option value="never">Jangan hapus</option>
+                  <option value="30m">Dalam 30 menit</option>
+                  <option value="1h">Dalam 1 jam</option>
+                  <option value="4h">Dalam 4 jam</option>
+                  <option value="today">Hari ini</option>
+                  <option value="1w">Minggu ini</option>
+                </select>
+              </div>
+            </Section>
+
+            <Section title="Zona Waktu">
+              <Row label="Zona waktu" desc="Digunakan untuk notifikasi dan jadwal">
+                <select value={timezone} onChange={e => setTimezone(e.target.value)}
+                  className="bg-muted border border-border text-white text-xs rounded-lg px-2 py-1.5 outline-none">
+                  <option value="WIB">WIB (UTC+7) Jakarta</option>
+                  <option value="WITA">WITA (UTC+8) Makassar</option>
+                  <option value="WIT">WIT (UTC+9) Jayapura</option>
+                  <option value="SGT">SGT (UTC+8) Singapura</option>
+                </select>
+              </Row>
+            </Section>
+
+            <button onClick={() => setSaved(true)}
+              className="w-full py-2.5 rounded-xl bg-[#4A154B] text-white font-bold text-sm hover:bg-[#3d1040]">
+              {saved ? '✓ Tersimpan' : 'Simpan Perubahan'}
+            </button>
+          </div>
+        )}
+
+        {/* ── NOTIFIKASI ── */}
+        {activeTab === 'notif' && (
+          <div className="max-w-lg">
+            <h2 className="text-white font-bold text-xl mb-6">Notifikasi</h2>
+
+            <Section title="Perangkat">
+              <Row label="Notifikasi desktop" desc="Tampilkan notifikasi di komputer"><Toggle val={notifDesktop} onChange={() => setNotifDesktop(!notifDesktop)}/></Row>
+              <Row label="Notifikasi mobile" desc="Tampilkan notifikasi di HP"><Toggle val={notifMobile} onChange={() => setNotifMobile(!notifMobile)}/></Row>
+              <Row label="Suara notifikasi" desc="Putar suara saat ada pesan baru"><Toggle val={notifSound} onChange={() => setNotifSound(!notifSound)}/></Row>
+              {notifSound && (
+                <div className="mt-2">
+                  <label className="text-gray-400 text-xs block mb-1">Jenis suara</label>
+                  <select value={soundType} onChange={e => setSoundType(e.target.value)}
+                    className="w-full bg-muted border border-border text-white text-xs rounded-lg px-2 py-1.5 outline-none">
+                    <option value="ding">Ding</option>
+                    <option value="knock">Knock</option>
+                    <option value="pop">Pop</option>
+                    <option value="none">Tanpa suara</option>
+                  </select>
+                </div>
+              )}
+              <Row label="Notifikasi email" desc="Kirim ringkasan via email saat tidak aktif"><Toggle val={notifEmail} onChange={() => setNotifEmail(!notifEmail)}/></Row>
+            </Section>
+
+            <Section title="Jenis Notifikasi">
+              <Row label="Mention (@nama)" desc="Saat ada yang mention kamu"><Toggle val={notifMention} onChange={() => setNotifMention(!notifMention)}/></Row>
+              <Row label="Pesan langsung (DM)" desc="Saat ada DM masuk"><Toggle val={notifDM} onChange={() => setNotifDM(!notifDM)}/></Row>
+              <Row label="Balasan thread" desc="Saat ada balasan di thread kamu"><Toggle val={notifThread} onChange={() => setNotifThread(!notifThread)}/></Row>
+              <Row label="Reaksi pesan" desc="Saat pesan kamu direaksi"><Toggle val={notifReaction} onChange={() => setNotifReaction(!notifReaction)}/></Row>
+            </Section>
+
+            <Section title="Jadwal Do Not Disturb">
+              <Row label="Aktifkan Do Not Disturb" desc="Nonaktifkan notifikasi pada jam tertentu"><Toggle val={dndEnabled} onChange={() => setDndEnabled(!dndEnabled)}/></Row>
+              {dndEnabled && (
+                <>
+                  <div className="flex gap-3 mt-3">
+                    <div className="flex-1">
+                      <label className="text-gray-400 text-xs block mb-1">Mulai</label>
+                      <input type="time" value={dndStart} onChange={e => setDndStart(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-white text-sm outline-none"/>
+                    </div>
+                    <div className="flex-1">
+                      <label className="text-gray-400 text-xs block mb-1">Selesai</label>
+                      <input type="time" value={dndEnd} onChange={e => setDndEnd(e.target.value)}
+                        className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-white text-sm outline-none"/>
+                    </div>
+                  </div>
+                  <Row label="Aktifkan di akhir pekan" desc="Sabtu & Minggu"><Toggle val={dndWeekend} onChange={() => setDndWeekend(!dndWeekend)}/></Row>
+                </>
+              )}
+            </Section>
+
+            <Section title="Keyword Alerts">
+              <label className="text-gray-400 text-xs block mb-1">Notifikasi saat kata kunci muncul</label>
+              <input type="text" value={keywords} onChange={e => setKeywords(e.target.value)}
+                placeholder="Contoh: urgent, deploy, server down"
+                className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-white text-sm outline-none focus:border-[#4A154B]"/>
+              <p className="text-gray-500 text-xs mt-1">Pisahkan dengan koma</p>
+            </Section>
+          </div>
+        )}
+
+        {/* ── TAMPILAN ── */}
+        {activeTab === 'tampilan' && (
+          <div className="max-w-lg">
+            <h2 className="text-white font-bold text-xl mb-6">Tampilan</h2>
+
+            <Section title="Tema">
+              <div className="grid grid-cols-3 gap-2 mb-3">
+                {[{val:'dark',label:'🌙 Gelap'},{val:'light',label:'☀️ Terang'},{val:'system',label:'⚙️ Sistem'}].map(t => (
+                  <button key={t.val} onClick={() => applyTheme(t.val)}
+                    className={`py-2.5 rounded-lg text-sm font-medium transition-colors ${theme===t.val ? 'bg-[#4A154B] text-white' : 'bg-muted text-gray-300 border border-border hover:bg-accent'}`}>
+                    {t.label}
+                  </button>
+                ))}
+              </div>
+              <Row label="Sinkronisasi dengan OS" desc="Ikuti pengaturan tema sistem operasi"><Toggle val={syncOS} onChange={() => setSyncOS(!syncOS)}/></Row>
+            </Section>
+
+            <Section title="Layout">
+              <Row label="Mode kompak" desc="Tampilkan pesan lebih rapat, hemat ruang"><Toggle val={compact} onChange={() => setCompact(!compact)}/></Row>
+              <Row label="Tampilkan avatar" desc="Tampilkan foto profil di setiap pesan"><Toggle val={showAvatar} onChange={() => setShowAvatar(!showAvatar)}/></Row>
+              <Row label="Pratinjau pesan" desc="Tampilkan preview pesan di notifikasi"><Toggle val={showPreview} onChange={() => setShowPreview(!showPreview)}/></Row>
+              <Row label="Ukuran teks" desc="">
+                <select value={fontSize} onChange={e => setFontSize(e.target.value)}
+                  className="bg-muted border border-border text-white text-xs rounded-lg px-2 py-1.5 outline-none">
+                  <option value="small">Kecil</option>
+                  <option value="normal">Normal</option>
+                  <option value="large">Besar</option>
+                </select>
+              </Row>
+            </Section>
+
+            <Section title="Aksesibilitas">
+              <Row label="Animasi UI" desc="Aktifkan efek transisi dan animasi"><Toggle val={animations} onChange={() => setAnimations(!animations)}/></Row>
+              <Row label="Font lebih bersih" desc="Gunakan font yang lebih mudah dibaca"><Toggle val={cleanerFont} onChange={() => setCleanerFont(!cleanerFont)}/></Row>
+              <Row label="Kontras tinggi" desc="Tingkatkan kontras untuk keterbacaan lebih baik"><Toggle val={highContrast} onChange={() => setHighContrast(!highContrast)}/></Row>
+              <Row label="Mode buta warna" desc="">
+                <select value={colorblind} onChange={e => setColorblind(e.target.value)}
+                  className="bg-muted border border-border text-white text-xs rounded-lg px-2 py-1.5 outline-none">
+                  <option value="none">Normal</option>
+                  <option value="deuteranopia">Deuteranopia</option>
+                  <option value="protanopia">Protanopia</option>
+                  <option value="tritanopia">Tritanopia</option>
+                </select>
+              </Row>
+            </Section>
+          </div>
+        )}
+
+        {/* ── PESAN & MEDIA ── */}
+        {activeTab === 'pesan' && (
+          <div className="max-w-lg">
+            <h2 className="text-white font-bold text-xl mb-6">Pesan & Media</h2>
+
+            <Section title="Penulisan Pesan">
+              <Row label="Enter untuk kirim" desc="Shift+Enter untuk baris baru"><Toggle val={enterSend} onChange={() => setEnterSend(!enterSend)}/></Row>
+              <Row label="Koreksi ejaan" desc="Tandai kata yang salah ejaan"><Toggle val={spellCheck} onChange={() => setSpellCheck(!spellCheck)}/></Row>
+              <Row label="Pratinjau tautan" desc="Tampilkan preview URL di chat"><Toggle val={linkPreview} onChange={() => setLinkPreview(!linkPreview)}/></Row>
+              <Row label="Skin tone emoji" desc="">
+                <select value={emojiSkin} onChange={e => setEmojiSkin(e.target.value)}
+                  className="bg-muted border border-border text-white text-xs rounded-lg px-2 py-1.5 outline-none">
+                  <option value="default">👋 Default</option>
+                  <option value="light">👋🏻 Terang</option>
+                  <option value="medium">👋🏽 Sedang</option>
+                  <option value="dark">👋🏿 Gelap</option>
+                </select>
+              </Row>
+            </Section>
+
+            <Section title="Pesan Hilang Otomatis (Self-Destruct)">
+              <Row label="Aktifkan self-destruct" desc="Pesan hilang otomatis setelah waktu tertentu"><Toggle val={autoDestruct} onChange={() => setAutoDestruct(!autoDestruct)}/></Row>
+              {autoDestruct && (
+                <div className="mt-3">
+                  <label className="text-gray-400 text-xs block mb-1">Hapus setelah</label>
+                  <select value={destructTime} onChange={e => setDestructTime(e.target.value)}
+                    className="w-full bg-muted border border-border text-white text-xs rounded-lg px-2 py-1.5 outline-none">
+                    <option value="1h">1 jam</option>
+                    <option value="1d">1 hari</option>
+                    <option value="7d">7 hari</option>
+                    <option value="30d">30 hari</option>
+                    <option value="90d">90 hari</option>
+                  </select>
+                </div>
+              )}
+            </Section>
+          </div>
+        )}
+
+        {/* ── PRIVASI ── */}
+        {activeTab === 'privasi' && (
+          <div className="max-w-lg">
+            <h2 className="text-white font-bold text-xl mb-6">Privasi</h2>
+
+            <Section title="Visibilitas">
+              <Row label="Tampilkan status online" desc="Biarkan anggota lain melihat status aktif kamu"><Toggle val={showOnline} onChange={() => setShowOnline(!showOnline)}/></Row>
+              <Row label="Tanda baca pesan" desc="Tampilkan centang saat pesan dibaca"><Toggle val={readReceipt} onChange={() => setReadReceipt(!readReceipt)}/></Row>
+              <Row label="Indikator mengetik" desc="Tampilkan sedang mengetik ke orang lain"><Toggle val={showTyping} onChange={() => setShowTyping(!showTyping)}/></Row>
+              <Row label="Tampilkan email di profil" desc=""><Toggle val={showEmail} onChange={() => setShowEmail(!showEmail)}/></Row>
+              <Row label="Tampilkan nomor telepon" desc=""><Toggle val={showPhone} onChange={() => setShowPhone(!showPhone)}/></Row>
+            </Section>
+
+            <Section title="Siapa yang Bisa DM Kamu">
+              <select value={allowDM} onChange={e => setAllowDM(e.target.value)}
+                className="w-full bg-muted border border-border text-white text-sm rounded-lg px-3 py-2.5 outline-none">
+                <option value="everyone">Semua anggota workspace</option>
+                <option value="channel">Hanya anggota channel yang sama</option>
+                <option value="none">Tidak ada (matikan DM)</option>
+              </select>
+            </Section>
+          </div>
+        )}
+
+        {/* ── SALURAN & RUANG ── */}
+        {activeTab === 'saluran' && (
+          <div className="max-w-lg">
+            <h2 className="text-white font-bold text-xl mb-6">Saluran & Ruang</h2>
+
+            <Section title="Kebijakan Channel">
+              <Row label="Siapa yang bisa membuat channel" desc="">
+                <select value={allowChannel} onChange={e => setAllowChannel(e.target.value)}
+                  className="bg-muted border border-border text-white text-xs rounded-lg px-2 py-1.5 outline-none">
+                  <option value="everyone">Semua anggota</option>
+                  <option value="admin">Admin saja</option>
+                  <option value="owner">Owner saja</option>
+                </select>
+              </Row>
+              <Row label="Channel baru default publik" desc="Channel baru otomatis publik untuk semua anggota"><Toggle val={defaultChannelPublic} onChange={() => setDefaultChannelPublic(!defaultChannelPublic)}/></Row>
+            </Section>
+
+            <Section title="Retensi Data">
+              <Row label="Simpan pesan selama" desc="Pesan lebih lama dari ini akan dihapus otomatis">
+                <select value={retentionDays} onChange={e => setRetentionDays(e.target.value)}
+                  className="bg-muted border border-border text-white text-xs rounded-lg px-2 py-1.5 outline-none">
+                  <option value="30">30 hari</option>
+                  <option value="90">90 hari</option>
+                  <option value="365">1 tahun</option>
+                  <option value="1825">5 tahun</option>
+                  <option value="3650">10 tahun (standar OJK)</option>
+                  <option value="forever">Selamanya</option>
+                </select>
+              </Row>
+              <p className="text-gray-500 text-xs mt-2">Standar OJK/BI memerlukan retensi minimal 5 tahun untuk komunikasi finansial</p>
+            </Section>
+          </div>
+        )}
+
+        {/* ── KEAMANAN ── */}
+        {activeTab === 'keamanan' && (
+          <div className="max-w-lg">
+            <h2 className="text-white font-bold text-xl mb-6">Keamanan</h2>
+
+            <Section title="Status Enkripsi">
+              {[
+                {label:'Enkripsi E2E', val:'AES-256-GCM', ok:true},
+                {label:'Post-Quantum (PQC)', val:'Kyber-1024', ok:true},
+                {label:'Zero Knowledge', val:'Aktif', ok:true},
+                {label:'Anti-Forensik', val:'Aktif', ok:true},
+                {label:'Google Authenticator', val:'Terdaftar', ok:true},
+                {label:'FIDO2/USB Key', val:'2 key terdaftar', ok:true},
+              ].map(item => (
+                <div key={item.label} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                  <span className="text-gray-300 text-sm">{item.label}</span>
+                  <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${item.ok ? 'bg-green-500/10 text-green-400' : 'bg-red-500/10 text-red-400'}`}>{item.val}</span>
+                </div>
+              ))}
+            </Section>
+
+            <Section title="Sesi Aktif">
+              <div className="flex items-center gap-3 p-3 rounded-lg bg-muted border border-border mb-3">
+                <div className="w-8 h-8 rounded-lg bg-accent flex items-center justify-center flex-shrink-0">
+                  <svg className="w-4 h-4 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
+                </div>
+                <div className="flex-1">
+                  <div className="text-white text-sm font-medium">Perangkat ini</div>
+                  <div className="text-gray-400 text-xs">Android · Chrome · Aktif sekarang</div>
+                </div>
+                <div className="w-2 h-2 rounded-full bg-green-400"/>
+              </div>
+              <button className="w-full py-2 rounded-lg border border-red-500/30 text-red-400 text-sm hover:bg-red-500/10 transition-colors">
+                Keluar dari semua perangkat
+              </button>
+            </Section>
+
+            <Section title="Kata Sandi">
+              <button className="w-full py-2.5 rounded-lg border border-border text-white text-sm hover:bg-muted transition-colors mb-2">
+                Ganti Kata Sandi
+              </button>
+              <button className="w-full py-2.5 rounded-lg border border-border text-white text-sm hover:bg-muted transition-colors">
+                Kelola Security Key (FIDO2)
+              </button>
+            </Section>
+          </div>
+        )}
+
+        {/* ── BAHASA & WILAYAH ── */}
+        {activeTab === 'bahasa' && (
+          <div className="max-w-lg">
+            <h2 className="text-white font-bold text-xl mb-6">Bahasa & Wilayah</h2>
+
+            <Section title="Bahasa">
+              <Row label="Bahasa antarmuka" desc="">
+                <select value={lang} onChange={e => setLang(e.target.value)}
+                  className="bg-muted border border-border text-white text-xs rounded-lg px-2 py-1.5 outline-none">
+                  <option value="id">🇮🇩 Bahasa Indonesia</option>
+                  <option value="en">🇺🇸 English</option>
+                  <option value="ar">🇸🇦 العربية</option>
+                  <option value="ms">🇲🇾 Bahasa Melayu</option>
+                  <option value="zh">🇨🇳 中文</option>
+                  <option value="ja">🇯🇵 日本語</option>
+                </select>
+              </Row>
+            </Section>
+
+            <Section title="Format Tanggal & Waktu">
+              <Row label="Format tanggal" desc="">
+                <select value={dateFormat} onChange={e => setDateFormat(e.target.value)}
+                  className="bg-muted border border-border text-white text-xs rounded-lg px-2 py-1.5 outline-none">
+                  <option value="DD/MM/YYYY">DD/MM/YYYY</option>
+                  <option value="MM/DD/YYYY">MM/DD/YYYY</option>
+                  <option value="YYYY-MM-DD">YYYY-MM-DD</option>
+                </select>
+              </Row>
+              <Row label="Format waktu" desc="">
+                <select value={timeFormat} onChange={e => setTimeFormat(e.target.value)}
+                  className="bg-muted border border-border text-white text-xs rounded-lg px-2 py-1.5 outline-none">
+                  <option value="24h">24 jam</option>
+                  <option value="12h">12 jam (AM/PM)</option>
+                </select>
+              </Row>
+              <Row label="Awal minggu" desc="">
+                <select value={weekStart} onChange={e => setWeekStart(e.target.value)}
+                  className="bg-muted border border-border text-white text-xs rounded-lg px-2 py-1.5 outline-none">
+                  <option value="monday">Senin</option>
+                  <option value="sunday">Minggu</option>
+                  <option value="saturday">Sabtu</option>
+                </select>
+              </Row>
+            </Section>
+          </div>
+        )}
+
+        {/* ── ADMINISTRASI ── */}
+        {activeTab === 'admin' && (
+          <div className="max-w-lg">
+            <h2 className="text-white font-bold text-xl mb-6">Administrasi Workspace</h2>
+
+            <Section title="Manajemen Anggota">
+              <Row label="Siapa yang bisa mengundang" desc="">
+                <select value={allowInvite} onChange={e => setAllowInvite(e.target.value)}
+                  className="bg-muted border border-border text-white text-xs rounded-lg px-2 py-1.5 outline-none">
+                  <option value="everyone">Semua anggota</option>
+                  <option value="admin">Admin saja</option>
+                  <option value="owner">Owner saja</option>
+                </select>
+              </Row>
+              <Row label="Akses tamu (guest)" desc="Izinkan akses terbatas untuk pihak eksternal"><Toggle val={guestAccess} onChange={() => setGuestAccess(!guestAccess)}/></Row>
+            </Section>
+
+            <Section title="Domain Email">
+              <label className="text-gray-400 text-xs block mb-1">Domain yang diizinkan bergabung</label>
+              <input type="text" value={allowedDomains} onChange={e => setAllowedDomains(e.target.value)}
+                placeholder="Contoh: perusahaan.co.id, bank.com"
+                className="w-full px-3 py-2 rounded-lg bg-muted border border-border text-white text-sm outline-none focus:border-[#4A154B] mb-1"/>
+              <p className="text-gray-500 text-xs">Pisahkan dengan koma. Kosongkan untuk semua domain.</p>
+            </Section>
+
+            <Section title="Keamanan Workspace">
+              <Row label="Wajibkan MFA untuk semua" desc="Semua anggota harus aktifkan 2FA"><Toggle val={requireMFA} onChange={() => setRequireMFA(!requireMFA)}/></Row>
+            </Section>
+
+            <Section title="Penagihan (Billing)">
+              <div className="flex items-center justify-between py-2 border-b border-border">
+                <div>
+                  <div className="text-white text-sm">Paket saat ini</div>
+                  <div className="text-gray-400 text-xs">Enterprise</div>
+                </div>
+                <span className="text-xs bg-[#4A154B] text-white px-2 py-1 rounded-full">Enterprise</span>
+              </div>
+              <button className="w-full mt-3 py-2 rounded-lg border border-border text-white text-sm hover:bg-muted transition-colors">
+                Kelola Langganan
+              </button>
+            </Section>
+          </div>
+        )}
+
+        {/* ── INTEGRASI ── */}
+        {activeTab === 'integrasi' && (
+          <div className="max-w-lg">
+            <h2 className="text-white font-bold text-xl mb-6">Integrasi Aplikasi</h2>
+            <p className="text-gray-400 text-sm mb-4">Hubungkan BlackMess dengan aplikasi yang kamu gunakan sehari-hari</p>
+            <div className="space-y-3">
+              {[
+                {name:'Google Drive', desc:'Kelola dan bagikan dokumen', logo:'https://upload.wikimedia.org/wikipedia/commons/1/12/Google_Drive_icon_%282020%29.svg', url:'https://drive.google.com'},
+                {name:'Google Calendar', desc:'Sinkronisasi jadwal tim', logo:'https://upload.wikimedia.org/wikipedia/commons/a/a5/Google_Calendar_icon_%282020%29.svg', url:'https://calendar.google.com'},
+                {name:'Gmail', desc:'Email perusahaan terintegrasi', logo:'https://upload.wikimedia.org/wikipedia/commons/7/7e/Gmail_icon_%282020%29.svg', url:'https://mail.google.com'},
+                {name:'GitHub', desc:'Notifikasi commit & PR', logo:'https://github.githubassets.com/images/modules/logos_page/GitHub-Mark.png', url:'https://github.com'},
+                {name:'Jira', desc:'Manajemen proyek & tiket', logo:'https://upload.wikimedia.org/wikipedia/commons/8/8a/Jira_Logo.svg', url:'https://jira.atlassian.com'},
+                {name:'Trello', desc:'Manajemen tugas visual', logo:'https://upload.wikimedia.org/wikipedia/en/8/8c/Trello_logo.svg', url:'https://trello.com'},
+                {name:'Notion', desc:'Dokumentasi tim', logo:'https://upload.wikimedia.org/wikipedia/commons/4/45/Notion_app_logo.png', url:'https://notion.so'},
+                {name:'Slack', desc:'Import data dari Slack', logo:'https://upload.wikimedia.org/wikipedia/commons/b/b9/Slack_Technologies_Logo.svg', url:'https://slack.com'},
+              ].map(app => (
+                <div key={app.name} className="flex items-center gap-4 p-4 rounded-xl bg-accent border border-border">
+                  <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center flex-shrink-0 p-1.5">
+                    <img src={app.logo} alt={app.name} className="w-full h-full object-contain" style={{filter: ['GitHub','Jira','Notion','Trello','Slack'].includes(app.name) ? 'invert(1)' : 'none'}}/>
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <div className="text-white font-semibold text-sm">{app.name}</div>
+                    <div className="text-gray-400 text-xs">{app.desc}</div>
+                  </div>
+                  <div className="flex gap-2 flex-shrink-0">
+                    <button onClick={() => window.open(app.url,'_blank')} className="px-3 py-1.5 rounded-lg text-xs border border-border text-gray-300 hover:bg-muted">Buka</button>
+                    <button className="px-3 py-1.5 rounded-lg text-xs bg-[#4A154B] text-white font-medium">Hubungkan</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* ── PINTASAN ── */}
+        {activeTab === 'pintasan' && (
+          <div className="max-w-lg">
+            <h2 className="text-white font-bold text-xl mb-6">Pintasan Keyboard</h2>
+            <Section title="Navigasi">
+              {[
+                {key:'Ctrl+K', desc:'Cari channel atau anggota'},
+                {key:'Alt+↑↓', desc:'Navigasi antar channel'},
+                {key:'Ctrl+Shift+K', desc:'Buka DM baru'},
+                {key:'Esc', desc:'Tutup panel / Batal edit'},
+              ].map(item => (
+                <div key={item.key} className="flex items-center justify-between py-2.5 border-b border-border last:border-0">
+                  <span className="text-gray-300 text-sm">{item.desc}</span>
+                  <span className="text-xs font-mono bg-muted px-2 py-1 rounded-lg text-white border border-border">{item.key}</span>
+                </div>
+              ))}
+            </Section>
+            <Section title="Pesan">
+              {[
+                {key:'Enter', desc:'Kirim pesan'},
+                {key:'Shift+Enter', desc:'Baris baru'},
+                {key:'↑', desc:'Edit pesan terakhir'},
+                {key:'Ctrl+B', desc:'Teks tebal'},
+                {key:'Ctrl+I', desc:'Teks miring'},
+                {key:'Ctrl+U', desc:'Teks bergaris bawah'},
+                {key:'Ctrl+Shift+X', desc:'Teks dicoret'},
+                {key:'Ctrl+Shift+C', desc:'Kode inline'},
+              ].map(item => (
+                <div key={item.key} className="flex items-center justify-between py-2.5 border-b border-border last:border-0">
+                  <span className="text-gray-300 text-sm">{item.desc}</span>
+                  <span className="text-xs font-mono bg-muted px-2 py-1 rounded-lg text-white border border-border">{item.key}</span>
+                </div>
+              ))}
+            </Section>
+          </div>
+        )}
+
+        {/* ── TENTANG ── */}
+        {activeTab === 'tentang' && (
+          <div className="max-w-lg">
+            <h2 className="text-white font-bold text-xl mb-6">Tentang BlackMess</h2>
+            <Section title="Informasi Aplikasi">
+              <div className="flex items-center gap-4 mb-4">
+                <div className="w-16 h-16 rounded-2xl bg-[#4A154B] flex items-center justify-center">
+                  <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
+                    <circle cx="24" cy="6" r="3" fill="white"/>
+                    <circle cx="24" cy="42" r="3" fill="white"/>
+                    <circle cx="6" cy="24" r="3" fill="white"/>
+                    <circle cx="42" cy="24" r="3" fill="white"/>
+                    <circle cx="11" cy="11" r="2.5" fill="white" opacity="0.7"/>
+                    <circle cx="37" cy="11" r="2.5" fill="white" opacity="0.7"/>
+                    <circle cx="11" cy="37" r="2.5" fill="white" opacity="0.7"/>
+                    <circle cx="37" cy="37" r="2.5" fill="white" opacity="0.7"/>
+                  </svg>
+                </div>
+                <div>
+                  <div className="text-white font-bold text-lg">BlackMess</div>
+                  <div className="text-gray-400 text-sm">Enterprise Remote Work Platform</div>
+                </div>
+              </div>
+              {[
+                {label:'Versi', val:'1.0.0'},
+                {label:'Build', val:new Date().toLocaleDateString('id-ID')},
+                {label:'Platform', val:'Web (Vite + React)'},
+                {label:'Backend', val:'Django 6.0 + PostgreSQL'},
+                {label:'Enkripsi', val:'AES-256-GCM + PQC Kyber-1024'},
+                {label:'Database', val:'500 tabel'},
+                {label:'Standar', val:'OJK/BI Compliant'},
+                {label:'Lisensi', val:'Enterprise'},
+              ].map(item => (
+                <div key={item.label} className="flex items-center justify-between py-2 border-b border-border last:border-0">
+                  <span className="text-gray-400 text-sm">{item.label}</span>
+                  <span className="text-white text-sm font-medium">{item.val}</span>
+                </div>
+              ))}
+              <button className="w-full mt-3 py-2.5 rounded-xl border border-border text-white text-sm hover:bg-muted transition-colors">
+                Cek Pembaruan
+              </button>
+            </Section>
+          </div>
+        )}
+
       </div>
     </div>
   )
 }
+
+
 
 // ─── Main App ─────────────────────────────────────────────────────────────────
 export default function App() {
@@ -1165,7 +1859,7 @@ export default function App() {
 
   if (!user) return <AuthFlow onComplete={setUser} />
 
-  if (showVideoCall) return <VideoCall user={user} onClose={() => setShowVideoCall(false)} />
+  if (showVideoCall && user) return <VideoCall user={user} onClose={() => setShowVideoCall(false)} />
 
   const handleNav = (page: string) => {
     if (page === 'videocall') { setShowVideoCall(true); return }
@@ -1181,7 +1875,7 @@ export default function App() {
   const renderContent = () => {
     if (subPage === 'profile') return <ProfilePage user={user} onLogout={() => setUser(null)} onBack={() => setSubPage('')} />
     if (subPage === 'vault') return <VaultPage />
-    if (subPage === 'settings') return <SettingsPage />
+    if (subPage === 'settings') { setSubPage('profile'); return null }
     if (subPage === 'invite') return <InvitePage user={user} />
 
     switch(activePage) {
@@ -1194,6 +1888,7 @@ export default function App() {
       case 'dms': return <DmsPage currentUser={user} />
       case 'compliance': return <CompliancePage currentUser={user} />
       case 'activity': return <ActivityPage />
+      case 'search': return <SearchPage messages={[]} />
       case 'saved': return <SavedPage />
       case 'files': return <FilesPage currentUser={user} />
       case 'apps': return <AppsPage />

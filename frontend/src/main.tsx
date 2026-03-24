@@ -13,12 +13,11 @@ if (savedTheme === 'light') {
   if (!prefersDark) root.classList.add('light')
 }
 
-import { ClerkProvider } from '@clerk/react'
 
 ReactDOM.createRoot(document.getElementById('root')!).render(
   <React.StrictMode>
-    <ClerkProvider>
+    
       <App />
-    </ClerkProvider>
+    
   </React.StrictMode>,
 )

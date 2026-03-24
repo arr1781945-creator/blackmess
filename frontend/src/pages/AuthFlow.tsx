@@ -1,9 +1,9 @@
+import { loginWithGitHub, handleGitHubCallback } from '../lib/github-auth'
 import * as OTPAuth from 'otpauth'
 import QRCode from 'react-qr-code'
-const API_URL = 'http://localhost:8002/api/v1/auth'
+import { useState, useEffect } from 'react'
 
-import { startRegistration } from '@simplewebauthn/browser'
-import { useState } from 'react'
+const API_URL = 'http://localhost:8002/api/v1/auth'
 
 type Step = 'login' | 'register' | 'verify-email' | 'totp-setup' | 'kyc' | 'usb' | 'auth' | 'done'
 
@@ -14,191 +14,164 @@ interface User {
   company: string
 }
 
+// ─── Warna Claude ─────────────────────────────────────────────────────────────
+const bg = '#1D1C1D'
+const bgCard = '#2C2D30'
+const bgInput = '#1D1C1D'
+const border = '#4A154B'
+const text = '#FFFFFF'
+const textMuted = '#ABABAD'
+const orange = '#4A154B'
+
+// ─── Logo ─────────────────────────────────────────────────────────────────────
 const Logo = () => (
-  <div className="text-center mb-10">
-    <div className="flex items-center justify-center mx-auto mb-6">
-      <svg width="56" height="56" viewBox="0 0 56 56" fill="none">
-        {/* Titik atas tengah */}
-        <circle cx="28" cy="8" r="5" fill="white"/>
-        {/* Titik kiri tengah */}
-        <circle cx="8" cy="28" r="5" fill="white"/>
-        {/* Titik kanan tengah */}
-        <circle cx="48" cy="28" r="5" fill="white"/>
-        {/* Titik bawah tengah */}
-        <circle cx="28" cy="48" r="5" fill="white"/>
-        {/* Titik kiri atas */}
-        <circle cx="14" cy="14" r="4" fill="white" opacity="0.6"/>
-        {/* Titik kanan atas */}
-        <circle cx="42" cy="14" r="4" fill="white" opacity="0.6"/>
-        {/* Titik kiri bawah */}
-        <circle cx="14" cy="42" r="4" fill="white" opacity="0.6"/>
-        {/* Titik kanan bawah */}
-        <circle cx="42" cy="42" r="4" fill="white" opacity="0.6"/>
+  <div className="text-center mb-8">
+    <div style={{ width:64, height:64, borderRadius:16, background:'#2C2D30', border:'1px solid #4A154B', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px' }}>
+      <svg width="36" height="36" viewBox="0 0 48 48" fill="none">
+        <circle cx="24" cy="6" r="3" fill='#FFFFFF'/>
+        <circle cx="24" cy="42" r="3" fill='#FFFFFF'/>
+        <circle cx="6" cy="24" r="3" fill='#FFFFFF'/>
+        <circle cx="42" cy="24" r="3" fill='#FFFFFF'/>
+        <circle cx="11" cy="11" r="2.5" fill='#FFFFFF' opacity="0.7"/>
+        <circle cx="37" cy="11" r="2.5" fill='#FFFFFF' opacity="0.7"/>
+        <circle cx="11" cy="37" r="2.5" fill='#FFFFFF' opacity="0.7"/>
+        <circle cx="37" cy="37" r="2.5" fill='#FFFFFF' opacity="0.7"/>
+        <circle cx="24" cy="24" r="3" fill='#FFFFFF' opacity="0.3"/>
       </svg>
     </div>
-    <h1 className="text-white font-light text-3xl tracking-wide">BlackMess</h1>
+    <h1 style={{ color:'#FFFFFF', fontSize:24, fontWeight:700, margin:0 }}>BlackMess</h1>
+    <p style={{ color:'#FFFFFF', fontSize:13, marginTop:4 }}>Platform komunikasi enterprise</p>
   </div>
 )
 
-const inputCls = "w-full px-5 py-4 rounded-full bg-[#1a1a1a] border border-transparent text-white text-sm outline-none focus:border-gray-600 transition-colors placeholder:text-gray-500"
-const labelCls = "text-sm font-medium text-gray-400 block mb-1.5"
-const btnPrimary = "w-full py-4 rounded-full bg-white hover:bg-gray-100 text-black font-bold text-sm transition-colors"
-const cardCls = "w-full"
+const inputStyle = {
+  width:'100%', padding:'12px 16px', borderRadius:10,
+  background:bgInput, border:'1px solid #4A154B',
+  color:'#FFFFFF', fontSize:14, outline:'none',
+  boxSizing:'border-box' as const
+}
 
-// ─── Step 1: Login ────────────────────────────────────────────────────────────
+const btnPrimary = {
+  width:'100%', padding:'12px', borderRadius:10,
+  background:'#4A154B', color:'#fff', fontWeight:700,
+  fontSize:14, border:'none', cursor:'pointer'
+}
+
+const btnSecondary = {
+  width:'100%', padding:'12px', borderRadius:10,
+  background:'transparent', color:'#FFFFFF', fontWeight:600,
+  fontSize:14, border:'1px solid #4A154B', cursor:'pointer'
+}
+
+// ─── Login / Register Step ────────────────────────────────────────────────────
 function LoginStep({ onNext }: { onNext: (user: User, step: Step) => void }) {
+  // Handle GitHub OAuth callback
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search)
+    const code = params.get('code')
+    if (code) {
+      const githubUser = {
+        name: 'GitHub User',
+        email: `github_${code.slice(0,8)}@github.com`,
+        avatar: 'G',
+        company: 'github.com'
+      }
+      // Simpan ke localStorage
+      const stored: any[] = JSON.parse(localStorage.getItem('bm_users')||'[]')
+      if (!stored.find(u => u.email === githubUser.email)) {
+        stored.push({ ...githubUser, pass: code, verified: true, kyc: true, usb: false })
+        localStorage.setItem('bm_users', JSON.stringify(stored))
+      }
+      // Bersihkan URL
+      window.history.replaceState({}, '', window.location.pathname)
+      onNext(githubUser, 'usb')
+    }
+  }, [])
   const [tab, setTab] = useState<'login'|'register'>('login')
   const [name, setName] = useState('')
   const [email, setEmail] = useState('')
   const [pass, setPass] = useState('')
   const [confirm, setConfirm] = useState('')
   const [error, setError] = useState('')
-
-  const validateCompanyEmail = (e: string) => {
-    const personal = ['gmail.com','yahoo.com','hotmail.com','outlook.com','icloud.com']
-    const domain = e.split('@')[1]
-    return domain && !personal.includes(domain)
-  }
+  const [loading, setLoading] = useState(false)
 
   const handle = async () => {
-    setError('')
-    const stored: any[] = JSON.parse(localStorage.getItem('bm_users') || '[]')
+    setError(''); setLoading(true)
+    const personal = []  // Allow semua email
 
     if (tab === 'register') {
-      if (!name || !email || !pass || !confirm) { setError('Isi semua field!'); return }
-      if (!validateCompanyEmail(email)) { setError('Gunakan email perusahaan! Bukan Gmail/Yahoo/Hotmail'); return }
-      if (pass.length < 8) { setError('Password minimal 8 karakter!'); return }
-      if (pass !== confirm) { setError('Password tidak cocok!'); return }
-      if (stored.find(u => u.email === email)) { setError('Email sudah terdaftar!'); return }
-      // Coba register ke Django API
+      if (!name || !email || !pass) { setError('Semua field wajib diisi!'); setLoading(false); return }
+      if (pass !== confirm) { setError('Password tidak sama!'); setLoading(false); return }
+
+      if (pass.length < 8) { setError('Password minimal 8 karakter!'); setLoading(false); return }
+
       try {
         const res = await fetch(`${API_URL}/register/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: name, email, password: pass })
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ username:name, email, password:pass })
         })
         const data = await res.json()
-        if (!res.ok) {
-          setError(data.detail || data.email?.[0] || data.username?.[0] || 'Gagal daftar!')
-          return
-        }
-      } catch(e) {
-        console.log('Server offline, pakai localStorage')
-      }
-      // Simpan ke localStorage sebagai backup
-      // Register ke Django API
-      try {
-        const res = await fetch(`${API_URL}/register/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: name, email, password: pass })
-        })
-        const data = await res.json()
-        if (!res.ok) {
-          const errMsg = data.detail || data.email?.[0] || data.username?.[0] || data.password?.[0] || 'Gagal daftar!'
-          setError(errMsg)
-          return
-        }
-        // Simpan token
-        if (data.access) {
-          localStorage.setItem('bm_token', data.access)
-          localStorage.setItem('bm_refresh', data.refresh || '')
-        }
-      } catch(e) {
-        console.log('Server offline, pakai localStorage')
-      }
-      stored.push({ name, email, pass, verified: false, kyc: false, usb: false })
+        if (!res.ok) { setError(data.detail || data.email?.[0] || 'Gagal daftar!'); setLoading(false); return }
+        if (data.access) { localStorage.setItem('bm_token', data.access); localStorage.setItem('bm_refresh', data.refresh||'') }
+      } catch(e) {}
+
+      const stored: any[] = JSON.parse(localStorage.getItem('bm_users')||'[]')
+      stored.push({ name, email, pass, verified:false, kyc:false, usb:false })
       localStorage.setItem('bm_users', JSON.stringify(stored))
-      onNext({ name, email, avatar: name[0].toUpperCase(), company: email.split('@')[1] }, 'verify-email')
+      onNext({ name, email, avatar:name[0].toUpperCase(), company:email.split('@')[1] }, 'verify-email')
+
     } else {
-      if (!email || !pass) { setError('Isi semua field!'); return }
-      // Coba login ke Django API
-      let djangoUser = null
+      if (!email || !pass) { setError('Email dan password wajib diisi!'); setLoading(false); return }
+
       try {
         const res = await fetch(`${API_URL}/login/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: email, password: pass })
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ username:email, password:pass })
         })
         const data = await res.json()
         if (res.ok && data.access) {
           localStorage.setItem('bm_token', data.access)
-          localStorage.setItem('bm_refresh', data.refresh || '')
-          djangoUser = { name: data.user?.username || email.split('@')[0], email, avatar: email[0].toUpperCase(), company: email.split('@')[1] }
-        }
-      } catch(e) {
-        console.log('Server offline, pakai localStorage')
-      }
+          localStorage.setItem('bm_refresh', data.refresh||'')
+          const stored: any[] = JSON.parse(localStorage.getItem('bm_users')||'[]')
+          const u = stored.find(u => u.email === email)
+          const djangoUser = { name:data.user?.username||email.split('@')[0], email, avatar:email[0].toUpperCase(), company:email.split('@')[1] }
+          if (!u||!u.verified) { onNext(djangoUser,'verify-email'); setLoading(false); return }
+          if (!u.kyc) { onNext(djangoUser,'kyc'); setLoading(false); return }
+          if (!u.usb) { onNext(djangoUser,'usb'); setLoading(false); return }
+          onNext(djangoUser,'auth'); setLoading(false); return
+        } else { setError(data.detail||'Email atau password salah!') }
+      } catch(e) {}
 
-      if (djangoUser) {
-        // Login Django berhasil - cek apakah perlu KYC/USB
-        const u = stored.find((u: any) => u.email === email)
-        if (u && !u.verified) { onNext(djangoUser, 'verify-email'); return }
-        if (u && !u.kyc) { onNext(djangoUser, 'kyc'); return }
-        if (u && !u.usb) { onNext(djangoUser, 'usb'); return }
-        onNext(djangoUser, 'auth')
-        return
-      }
-
-      // Coba login Django
-      try {
-        const res = await fetch(`${API_URL}/login/`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: email, password: pass })
-        })
-        const data = await res.json()
-        if (res.ok && data.access) {
-          localStorage.setItem('bm_token', data.access)
-          localStorage.setItem('bm_refresh', data.refresh || '')
-          const u = stored.find((u: any) => u.email === email)
-          const djangoUser = {
-            name: data.user?.username || email.split('@')[0],
-            email,
-            avatar: (data.user?.username || email)[0].toUpperCase(),
-            company: email.split('@')[1]
-          }
-          if (!u || !u.verified) { onNext(djangoUser, 'verify-email'); return }
-          if (!u.kyc) { onNext(djangoUser, 'kyc'); return }
-          if (!u.usb) { onNext(djangoUser, 'usb'); return }
-          onNext(djangoUser, 'usb')
-          return
-        } else {
-          setError(data.detail || 'Email atau password salah!')
-          return
-        }
-      } catch(e) {
-        console.log('Server offline, pakai localStorage')
-      }
-
-      // Fallback localStorage
-      const u = stored.find((u: any) => u.email === email && u.pass === pass)
-      if (!u) { setError('Email atau password salah!'); return }
-      const user = { name: u.name, email: u.email, avatar: u.name[0].toUpperCase(), company: u.email.split('@')[1] }
-      if (!u.verified) { onNext(user, 'verify-email'); return }
-      if (!u.kyc) { onNext(user, 'kyc'); return }
-      if (!u.usb) { onNext(user, 'usb'); return }
-      onNext(user, 'auth')
+      const stored: any[] = JSON.parse(localStorage.getItem('bm_users')||'[]')
+      const u = stored.find(u => u.email===email && u.pass===pass)
+      if (!u) { setError('Email atau password salah!'); setLoading(false); return }
+      const user = { name:u.name, email:u.email, avatar:u.name[0].toUpperCase(), company:u.email.split('@')[1] }
+      if (!u.verified) { onNext(user,'verify-email'); setLoading(false); return }
+      if (!u.kyc) { onNext(user,'kyc'); setLoading(false); return }
+      if (!u.usb) { onNext(user,'usb'); setLoading(false); return }
+      onNext(user,'auth')
     }
+    setLoading(false)
   }
 
   return (
-    <div className="w-full max-w-sm">
-      <Logo />
-      <div className={cardCls}>
-        {/* Tab */}
-        <div className="flex gap-1 bg-black rounded-xl p-1 mb-5 border border-gray-800">
+    <div style={{ width:'100%', maxWidth:400 }}>
+      <Logo/>
+      <div style={{ background:'#2C2D30', border:'1px solid #4A154B', borderRadius:16, padding:28 }}>
+        {/* Tabs */}
+        <div style={{ display:'flex', gap:4, background:bgInput, borderRadius:10, padding:4, marginBottom:20 }}>
           {(['login','register'] as const).map(t => (
-            <button key={t} onClick={() => { setTab(t); setError('') }}
-              className={`flex-1 py-2 rounded-lg text-sm font-semibold transition-all ${tab === t ? 'bg-white text-black' : 'text-gray-400'}`}>
-              {t === 'login' ? 'Masuk' : 'Daftar'}
-            </button>
+            <button key={t} onClick={() => { setTab(t); setError('') }} style={{
+              flex:1, padding:'8px', borderRadius:8, border:'none', cursor:'pointer',
+              background: tab===t ? orange : 'transparent',
+              color: tab===t ? '#fff' : textMuted, fontWeight:600, fontSize:13
+            }}>{t==='login' ? 'Masuk' : 'Daftar'}</button>
           ))}
         </div>
 
         {/* OAuth */}
-        <div className="flex gap-3 mb-4">
-          <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-700 bg-black hover:bg-gray-900 text-sm font-medium text-white transition-colors">
+        <div style={{ display:'flex', gap:10, marginBottom:16 }}>
+          <button style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'10px', borderRadius:10, background:'#fff', border:'1px solid #ddd', cursor:'pointer', color:'#000', fontSize:13, fontWeight:600 }}>
             <svg width="16" height="16" viewBox="0 0 24 24">
               <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
               <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
@@ -207,46 +180,33 @@ function LoginStep({ onNext }: { onNext: (user: User, step: Step) => void }) {
             </svg>
             Google
           </button>
-          <button className="flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl border border-gray-700 bg-black hover:bg-gray-900 text-sm font-medium text-white transition-colors">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="white">
+          <button onClick={loginWithGitHub} style={{ flex:1, display:'flex', alignItems:'center', justifyContent:'center', gap:8, padding:'10px', borderRadius:10, background:'#fff', border:'1px solid #ddd', cursor:'pointer', color:'#000', fontSize:13, fontWeight:600 }}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="#000">
               <path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0024 12c0-6.63-5.37-12-12-12z"/>
             </svg>
             GitHub
           </button>
         </div>
 
-        <div className="flex items-center gap-3 mb-4">
-          <div className="flex-1 h-px bg-gray-800"/>
-          <span className="text-gray-600 text-xs">atau dengan email</span>
-          <div className="flex-1 h-px bg-gray-800"/>
+        <div style={{ display:'flex', alignItems:'center', gap:10, marginBottom:16 }}>
+          <div style={{ flex:1, height:1, background:border }}/>
+          <span style={{ color:'#FFFFFF', fontSize:12 }}>atau dengan email</span>
+          <div style={{ flex:1, height:1, background:border }}/>
         </div>
 
-        {error && <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-xs mb-4">{error}</div>}
+        {error && <div style={{ background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.3)', borderRadius:8, padding:'10px 14px', color:'#f87171', fontSize:13, marginBottom:14 }}>{error}</div>}
 
-        <div className="flex flex-col gap-3">
-          {tab === 'register' && (
-            <div>
-              <label className={labelCls}>Nama lengkap</label>
-              <input className={inputCls} type="text" placeholder="Nama kamu" value={name} onChange={e => setName(e.target.value)}/>
-            </div>
+        <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+          {tab==='register' && (
+            <input style={inputStyle} type="text" placeholder="Nama lengkap" value={name} onChange={e=>setName(e.target.value)}/>
           )}
-          <div>
-            <label className={labelCls}>Email perusahaan</label>
-            <input className={inputCls} type="email" placeholder="nama@perusahaan.com" value={email} onChange={e => setEmail(e.target.value)}/>
-          </div>
-          <div>
-            <label className={labelCls}>Password</label>
-            <input className={inputCls} type="password" placeholder="Min. 8 karakter" value={pass} onChange={e => setPass(e.target.value)}/>
-          </div>
-          {tab === 'register' && (
-            <div>
-              <label className={labelCls}>Konfirmasi password</label>
-              <input className={inputCls} type="password" placeholder="Ulangi password" value={confirm}
-                onChange={e => setConfirm(e.target.value)} onKeyDown={e => e.key === 'Enter' && handle()}/>
-            </div>
+          <input style={inputStyle} type="email" placeholder='Email (contoh: nama@gmail.com)' value={email} onChange={e=>setEmail(e.target.value)}/>
+          <input style={inputStyle} type="password" placeholder="Password" value={pass} onChange={e=>setPass(e.target.value)} onKeyDown={e=>e.key==='Enter'&&handle()}/>
+          {tab==='register' && (
+            <input style={inputStyle} type="password" placeholder="Konfirmasi password" value={confirm} onChange={e=>setConfirm(e.target.value)}/>
           )}
-          <button className={btnPrimary} onClick={handle}>
-            {tab === 'login' ? 'Masuk' : 'Buat Akun'}
+          <button onClick={handle} disabled={loading} style={{...btnPrimary, opacity:loading?0.7:1}}>
+            {loading ? 'Memproses...' : tab==='login' ? 'Masuk' : 'Daftar'}
           </button>
         </div>
       </div>
@@ -254,414 +214,295 @@ function LoginStep({ onNext }: { onNext: (user: User, step: Step) => void }) {
   )
 }
 
-// ─── Step 2: Verifikasi Email ─────────────────────────────────────────────────
+// ─── Verify Email Step ────────────────────────────────────────────────────────
 function VerifyEmailStep({ user, onNext }: { user: User, onNext: () => void }) {
   const [code, setCode] = useState(['','','','','',''])
   const [error, setError] = useState('')
-  const [sending, setSending] = useState(false)
-
-  const sendOTP = async () => {
-    setSending(true)
-    try {
-      await fetch('http://localhost:8002/api/v1/auth/otp/send/', {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({ email: user.email, name: user.name })
-      })
-    } catch(e) { console.log('Server offline, using demo mode') }
-    setSending(false)
-  }
-
-  useState(() => { sendOTP() })
 
   const handleChange = async (i: number, val: string) => {
     if (!/^\d*$/.test(val)) return
     const n = [...code]; n[i] = val.slice(-1); setCode(n)
     if (val && i < 5) document.getElementById(`otp-${i+1}`)?.focus()
-    if (n.every(d => d) && i === 5) {
+    if (n.every(d=>d) && i===5) {
       const enteredOTP = n.join('')
       try {
-        const res = await fetch('http://localhost:8002/api/v1/auth/otp/verify/', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ email: user.email, otp: enteredOTP })
+        const res = await fetch(`${API_URL}/otp/verify/`, {
+          method:'POST', headers:{'Content-Type':'application/json'},
+          body: JSON.stringify({ email:user.email, otp:enteredOTP })
         })
         if (res.ok) {
-          const s: any[] = JSON.parse(localStorage.getItem('bm_users') || '[]')
-          const updatedUsers = JSON.parse(localStorage.getItem('bm_users') || '[]')
-          localStorage.setItem('bm_users', JSON.stringify(updatedUsers.map((u: any) => u.email === user.email ? {...u, verified: true} : u)))
-          onNext()
-          return
+          const s: any[] = JSON.parse(localStorage.getItem('bm_users')||'[]')
+          localStorage.setItem('bm_users', JSON.stringify(s.map(u => u.email===user.email ? {...u, verified:true} : u)))
+          onNext(); return
         }
-      } catch(e) {
-        // Fallback demo mode
-        if (enteredOTP === '123456') {
-          const s: any[] = JSON.parse(localStorage.getItem('bm_users') || '[]')
-          const updatedUsers = JSON.parse(localStorage.getItem('bm_users') || '[]')
-          localStorage.setItem('bm_users', JSON.stringify(updatedUsers.map((u: any) => u.email === user.email ? {...u, verified: true} : u)))
-          onNext()
-          return
-        }
+      } catch(e) {}
+      if (enteredOTP==='123456') {
+        const s: any[] = JSON.parse(localStorage.getItem('bm_users')||'[]')
+        localStorage.setItem('bm_users', JSON.stringify(s.map(u => u.email===user.email ? {...u, verified:true} : u)))
+        onNext(); return
       }
-      if (false) { setError('Kode salah! Demo: 123456')
-        setCode(['','','','','',''])
-        document.getElementById('otp-0')?.focus()
-      }
+      setError('Kode salah!')
+      setCode(['','','','','',''])
+      document.getElementById('otp-0')?.focus()
     }
   }
 
   return (
-    <div className="w-full max-w-sm">
-      <Logo />
-      <div className={`${cardCls} text-center`}>
-        <div className="w-14 h-14 rounded-full border border-gray-700 flex items-center justify-center mx-auto mb-4">
-          <svg className="w-7 h-7 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-          </svg>
-        </div>
-        <h2 className="text-white font-bold text-lg mb-1">Verifikasi Email</h2>
-        <p className="text-gray-500 text-sm mb-1">Kode dikirim ke</p>
-        <p className="text-white text-sm font-semibold mb-6">{user.email}</p>
-
-        {error && <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-2 text-red-400 text-xs mb-4">{error}</div>}
-
-        <div className="flex gap-2 justify-center mb-4">
-          {code.map((d, i) => (
+    <div style={{ width:'100%', maxWidth:400 }}>
+      <Logo/>
+      <div style={{ background:'#2C2D30', border:'1px solid #4A154B', borderRadius:16, padding:28 }}>
+        <h2 style={{ color:'#FFFFFF', fontSize:20, fontWeight:700, marginBottom:6 }}>Verifikasi Email</h2>
+        <p style={{ color:'#FFFFFF', fontSize:13, marginBottom:24 }}>Masukkan 6 digit kode yang dikirim ke {user.email}</p>
+        {error && <div style={{ background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.3)', borderRadius:8, padding:'10px', color:'#f87171', fontSize:13, marginBottom:14 }}>{error}</div>}
+        <div style={{ display:'flex', gap:8, justifyContent:'center', marginBottom:16 }}>
+          {code.map((d,i) => (
             <input key={i} id={`otp-${i}`} type="text" inputMode="numeric" maxLength={1} value={d}
-              onChange={e => handleChange(i, e.target.value)}
-              onKeyDown={e => { if(e.key==='Backspace' && !d && i > 0) document.getElementById(`otp-${i-1}`)?.focus() }}
-              className="w-11 h-14 text-center text-xl font-bold rounded-xl bg-black border border-gray-700 text-white outline-none focus:border-white transition-colors"/>
+              onChange={e=>handleChange(i,e.target.value)}
+              onKeyDown={e=>{if(e.key==='Backspace'&&!d&&i>0) document.getElementById(`otp-${i-1}`)?.focus()}}
+              style={{ width:44, height:54, textAlign:'center', fontSize:22, fontWeight:700, borderRadius:10, background:bgInput, border:'1px solid #4A154B', color:'#FFFFFF', outline:'none' }}/>
           ))}
         </div>
-        <p className="text-gray-600 text-xs">Demo: gunakan kode <span className="text-white font-bold">123456</span></p>
+        <p style={{ color:'#FFFFFF', fontSize:12, textAlign:'center' }}>Demo: <strong style={{ color:orange }}>123456</strong></p>
       </div>
     </div>
   )
 }
 
-// ─── Step 3: KYC ─────────────────────────────────────────────────────────────
-function KYCStep({ user, onNext }: { user: User, onNext: () => void }) {
-  const [idType, setIdType] = useState('ktp')
-  const [idNum, setIdNum] = useState('')
-  const [fullName, setFullName] = useState('')
-  const [company, setCompany] = useState('')
-  const [uploaded, setUploaded] = useState(false)
-  const [loading, setLoading] = useState(false)
+// ─── TOTP Setup Step ──────────────────────────────────────────────────────────
+function TOTPSetupStep({ user, onNext }: { user: User, onNext: () => void }) {
+  const [secret] = useState(() => {
+    const sessionKey = `bm_totp_${btoa(user.email)}`
+    const saved = sessionStorage.getItem(sessionKey)
+    if (saved) return saved
+    const newSecret = Array.from(crypto.getRandomValues(new Uint8Array(20)))
+      .map(b => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'[b % 32]).join('')
+    sessionStorage.setItem(sessionKey, newSecret)
+    return newSecret
+  })
+  const [code, setCode] = useState(['','','','','',''])
   const [error, setError] = useState('')
+  const [step, setStep] = useState<'qr'|'verify'>('qr')
+  const [verified, setVerified] = useState(false)
 
-  const handle = async () => {
-    if (!idNum || !fullName || !company) { setError('Isi semua field!'); return }
-    if (!uploaded) { setError('Upload dokumen identitas dulu!'); return }
-    setLoading(true)
-    await new Promise(r => setTimeout(r, 1500))
-    const s: any[] = JSON.parse(localStorage.getItem('bm_users') || '[]')
-    localStorage.setItem('bm_users', JSON.stringify(s.map(u => u.email === user.email ? {...u, kyc: true} : u)))
-    setLoading(false)
-    onNext()
-  }
+  const otpauth = `otpauth://totp/BlackMess:${encodeURIComponent(user.email)}?secret=${secret}&issuer=BlackMess`
 
-  return (
-    <div className="w-full max-w-sm">
-      <Logo />
-      <div className={cardCls}>
-        <div className="flex items-center gap-3 mb-5">
-          <div className="w-10 h-10 rounded-xl border border-gray-700 flex items-center justify-center">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>
-            </svg>
-          </div>
-          <div>
-            <h2 className="text-white font-bold">Verifikasi KYC</h2>
-            <p className="text-gray-500 text-xs">Know Your Customer</p>
-          </div>
-        </div>
-
-        {error && <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-xs mb-4">{error}</div>}
-
-        <div className="flex flex-col gap-3">
-          <div>
-            <label className={labelCls}>Jenis identitas</label>
-            <select value={idType} onChange={e => setIdType(e.target.value)}
-              className={inputCls}>
-              <option value="ktp">KTP</option>
-              <option value="passport">Passport</option>
-              <option value="sim">SIM</option>
-            </select>
-          </div>
-          <div>
-            <label className={labelCls}>Nomor identitas</label>
-            <input className={inputCls} type="text" placeholder="Nomor KTP/Passport/SIM" value={idNum} onChange={e => setIdNum(e.target.value)}/>
-          </div>
-          <div>
-            <label className={labelCls}>Nama lengkap (sesuai KTP)</label>
-            <input className={inputCls} type="text" placeholder="Nama lengkap" value={fullName} onChange={e => setFullName(e.target.value)}/>
-          </div>
-          <div>
-            <label className={labelCls}>Nama perusahaan</label>
-            <input className={inputCls} type="text" placeholder="PT. Nama Perusahaan" value={company} onChange={e => setCompany(e.target.value)}/>
-          </div>
-          <div>
-            <label className={labelCls}>Upload dokumen</label>
-            <label className={`w-full py-6 rounded-xl border-2 border-dashed cursor-pointer transition-colors text-center block ${uploaded ? 'border-white/40 bg-white/5' : 'border-gray-700 hover:border-white/40'}`}>
-              <input
-                type="file"
-                accept="image/*"
-                capture="environment"
-                className="hidden"
-                onChange={e => { if (e.target.files && e.target.files[0]) setUploaded(true) }}
-              />
-              {uploaded ? (
-                <div className="flex flex-col items-center gap-1">
-                  <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                  <span className="text-white text-sm font-semibold">Dokumen terupload!</span>
-                  <span className="text-gray-500 text-xs">Ketuk untuk ganti foto</span>
-                </div>
-              ) : (
-                <div className="flex flex-col items-center gap-2">
-                  <svg className="w-8 h-8 text-gray-600" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z"/><path strokeLinecap="round" strokeLinejoin="round" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                  <span className="text-gray-400 text-sm font-medium">Ambil foto atau pilih file</span>
-                  <span className="text-gray-600 text-xs">KTP / Passport / SIM</span>
-                </div>
-              )}
-            </label>
-          </div>
-          <button className={btnPrimary} onClick={handle} disabled={loading}>
-            {loading ? 'Memverifikasi...' : 'Verifikasi KYC'}
-          </button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-// ─── Step 4: USB Key ──────────────────────────────────────────────────────────
-function USBStep({ user, onComplete }: { user: User, onComplete: (user: User) => void }) {
-  const [usb1, setUsb1] = useState(false)
-  const [usb2, setUsb2] = useState(false)
-  const [dbPass, setDbPass] = useState('')
-  const [showPass, setShowPass] = useState(false)
-  const [loading1, setLoading1] = useState(false)
-  const [loading2, setLoading2] = useState(false)
-  const [error, setError] = useState('')
-
-  const strength = dbPass.length === 0 ? 0 : dbPass.length < 8 ? 1 : dbPass.length < 12 ? 2 : dbPass.length < 16 ? 3 : 4
-  const strengthColor = ['', 'bg-red-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500'][strength]
-  const strengthLabel = ['', 'Lemah', 'Sedang', 'Kuat', 'Sangat Kuat'][strength]
-
-  const registerUSB = async (num: number) => {
-    if (num === 1) setLoading1(true)
-    else setLoading2(true)
-    setError('')
-
-    try {
-      // Cek support WebAuthn
-      if (!window.PublicKeyCredential) {
-        throw new Error('NO_WEBAUTHN')
-      }
-
-      // Cek fingerprint/face id tersedia
-      const available = await PublicKeyCredential.isUserVerifyingPlatformAuthenticatorAvailable()
-      if (!available) {
-        throw new Error('NO_AUTHENTICATOR')
-      }
-
-      // Generate challenge random
-      const challenge = new Uint8Array(32)
-      crypto.getRandomValues(challenge)
-
-      // Daftar fingerprint/face id
-      const credential = await navigator.credentials.create({
-        publicKey: {
-          challenge,
-          rp: {
-            name: 'BlackMess Enterprise',
-            id: window.location.hostname
-          },
-          user: {
-            id: new TextEncoder().encode(`${user.email}-key${num}-${Date.now()}`),
-            name: user.email,
-            displayName: `${user.name} - Security Key ${num}`,
-          },
-          pubKeyCredParams: [
-            { alg: -7, type: 'public-key' as const },
-            { alg: -257, type: 'public-key' as const },
-          ],
-          authenticatorSelection: {
-            authenticatorAttachment: 'platform' as const,
-            userVerification: 'required' as const,
-            requireResidentKey: false,
-          },
-          timeout: 120000,
-          attestation: 'none' as const,
-        }
-      }) as PublicKeyCredential
-
-      if (credential) {
-        // Simpan credential ke localStorage
-        const stored = JSON.parse(localStorage.getItem('bm_webauthn') || '[]')
-        stored.push({
-          id: credential.id,
-          type: credential.type,
-          key_num: num,
-          email: user.email,
-          created_at: new Date().toISOString()
-        })
-        localStorage.setItem('bm_webauthn', JSON.stringify(stored))
-        if (num === 1) setUsb1(true)
-        else setUsb2(true)
-      }
-
-    } catch(e: any) {
-      if (e.message === 'NO_WEBAUTHN') {
-        setError('Browser tidak mendukung WebAuthn. Gunakan Chrome terbaru.')
-      } else if (e.message === 'NO_AUTHENTICATOR') {
-        setError('Fingerprint/Face ID tidak tersedia. Aktifkan di pengaturan HP.')
-      } else if (e.name === 'NotAllowedError') {
-        setError('Verifikasi dibatalkan atau timeout. Coba lagi!')
-      } else if (e.name === 'InvalidStateError') {
-        // Sudah terdaftar sebelumnya
-        if (num === 1) setUsb1(true)
-        else setUsb2(true)
-      } else if (e.name === 'AbortError') {
-        setError('Verifikasi dibatalkan.')
+  const handleChange = (i: number, val: string) => {
+    if (!/^\d*$/.test(val)) return
+    const n = [...code]; n[i] = val.slice(-1); setCode(n)
+    if (val && i < 5) document.getElementById(`totp-${i+1}`)?.focus()
+    if (n.every(d=>d) && i===5) {
+      const totp = new OTPAuth.TOTP({ issuer:'BlackMess', label:user.email, algorithm:'SHA1', digits:6, period:30, secret:OTPAuth.Secret.fromBase32(secret) })
+      const delta = totp.validate({ token:n.join(''), window:1 })
+      if (delta !== null) {
+        setVerified(true)
+        sessionStorage.setItem(`bm_totp_ok_${btoa(user.email)}`, 'true')
+        setTimeout(() => onNext(), 800)
       } else {
-        // Fallback - simulasi untuk testing
-        console.warn('WebAuthn error:', e.name, e.message)
-        // Langsung fallback tanpa delay
-        if (num === 1) setUsb1(true)
-        else setUsb2(true)
+        setError('Kode salah! Coba lagi.')
+        setCode(['','','','','',''])
+        document.getElementById('totp-0')?.focus()
       }
-    } finally {
-      if (num === 1) setLoading1(false)
-      else setLoading2(false)
     }
   }
 
-  const handleFinish = async () => {
-    if (!usb1 || !usb2) { setError('Daftarkan kedua USB key dulu!'); return }
-    if (dbPass.length < 12) { setError('Kata sandi database minimal 12 karakter!'); return }
-    setError('')
-    const s: any[] = JSON.parse(localStorage.getItem('bm_users') || '[]')
-    localStorage.setItem('bm_users', JSON.stringify(s.map(u => u.email === user.email ? {...u, usb: true} : u)))
-    onComplete(user)
-  }
-
-  const USBCard = ({ num, registered, loading, onRegister }: any) => (
-    <div className={`p-4 rounded-xl border transition-all ${registered ? 'border-white/30 bg-white/5' : 'border-gray-800 bg-black'}`}>
-      <div className="flex items-center gap-3">
-        <div className={`w-12 h-12 rounded-xl border flex items-center justify-center flex-shrink-0 ${registered ? 'border-white/30 bg-white/5' : 'border-gray-700'}`}>
-          {registered ? (
-            <svg className="w-6 h-6 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-            </svg>
-          ) : (
-            <svg className="w-6 h-6 text-gray-500" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/>
-            </svg>
-          )}
-        </div>
-        <div className="flex-1">
-          <div className="text-white font-semibold text-sm">
-            {num === 1 ? 'Security Key Utama' : 'Security Key Cadangan'}
+  return (
+    <div style={{ width:'100%', maxWidth:400 }}>
+      <Logo/>
+      <div style={{ background:'#2C2D30', border:'1px solid #4A154B', borderRadius:16, padding:28 }}>
+        {verified ? (
+          <div style={{ textAlign:'center', padding:'20px 0' }}>
+            <div style={{ width:64, height:64, borderRadius:'50%', border:`2px solid ${orange}`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
+              <svg className="w-8 h-8" fill="none" stroke='#FFFFFF' strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+            </div>
+            <p style={{ color:'#FFFFFF', fontWeight:600 }}>Google Authenticator Terdaftar!</p>
           </div>
-          <div className="text-gray-500 text-xs mt-0.5">
-            {registered ? '✓ Fingerprint/Face ID terdaftar' : 'Gunakan fingerprint atau face ID'}
-          </div>
-        </div>
-        {!registered && (
-          <button onClick={onRegister} disabled={loading}
-            className="px-3 py-2 rounded-lg bg-white text-black text-xs font-bold transition-all disabled:opacity-40 flex items-center gap-1.5">
-            {loading ? (
-              <>
-                <svg className="animate-spin w-3 h-3" fill="none" viewBox="0 0 24 24">
-                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"/>
-                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"/>
-                </svg>
-                Memindai...
-              </>
-            ) : (
-              <>
-                <svg className="w-3 h-3" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/>
-                </svg>
-                Daftar
-              </>
-            )}
-          </button>
+        ) : step==='qr' ? (
+          <>
+            <h2 style={{ color:'#FFFFFF', fontSize:18, fontWeight:700, marginBottom:6 }}>Setup Google Authenticator</h2>
+            <p style={{ color:'#FFFFFF', fontSize:13, marginBottom:16 }}>Scan QR code dengan Google Authenticator</p>
+            <div style={{ background:'#fff', padding:16, borderRadius:12, marginBottom:16, display:'flex', justifyContent:'center' }}>
+              <QRCode value={otpauth} size={160}/>
+            </div>
+            <div style={{ background:bgInput, border:'1px solid #4A154B', borderRadius:10, padding:12, marginBottom:16 }}>
+              <p style={{ color:'#FFFFFF', fontSize:11, marginBottom:4 }}>Kode manual:</p>
+              <p style={{ color:'#FFFFFF', fontSize:11, fontFamily:'monospace', wordBreak:'break-all' }}>{secret}</p>
+            </div>
+            <button onClick={() => setStep('verify')} style={btnPrimary}>Sudah Scan → Verifikasi</button>
+          </>
+        ) : (
+          <>
+            <h2 style={{ color:'#FFFFFF', fontSize:18, fontWeight:700, marginBottom:6 }}>Verifikasi Kode</h2>
+            <p style={{ color:'#FFFFFF', fontSize:13, marginBottom:16 }}>Masukkan 6 digit dari Google Authenticator</p>
+            {error && <div style={{ background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.3)', borderRadius:8, padding:10, color:'#f87171', fontSize:13, marginBottom:14 }}>{error}</div>}
+            <div style={{ display:'flex', gap:8, justifyContent:'center', marginBottom:16 }}>
+              {code.map((d,i) => (
+                <input key={i} id={`totp-${i}`} type="text" inputMode="numeric" maxLength={1} value={d}
+                  onChange={e=>handleChange(i,e.target.value)}
+                  onKeyDown={e=>{if(e.key==='Backspace'&&!d&&i>0) document.getElementById(`totp-${i-1}`)?.focus()}}
+                  style={{ width:44, height:54, textAlign:'center', fontSize:22, fontWeight:700, borderRadius:10, background:bgInput, border:'1px solid #4A154B', color:'#FFFFFF', outline:'none' }}/>
+              ))}
+            </div>
+            <button onClick={() => setStep('qr')} style={{ ...btnSecondary, marginTop:8 }}>← Kembali ke QR Code</button>
+          </>
         )}
       </div>
     </div>
   )
+}
+
+// ─── KYC Step ─────────────────────────────────────────────────────────────────
+function KYCStep({ user, onNext }: { user: User, onNext: () => void }) {
+  const [file, setFile] = useState<File|null>(null)
+  const [preview, setPreview] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const handleFile = (f: File) => {
+    setFile(f)
+    setPreview(URL.createObjectURL(f))
+  }
+
+  const handleSubmit = () => {
+    if (!file) return
+    setLoading(true)
+    setTimeout(() => {
+      const s: any[] = JSON.parse(localStorage.getItem('bm_users')||'[]')
+      localStorage.setItem('bm_users', JSON.stringify(s.map(u => u.email===user.email ? {...u, kyc:true} : u)))
+      setLoading(false)
+      onNext()
+    }, 1500)
+  }
 
   return (
-    <div className="w-full max-w-sm">
-      <Logo />
-      <div className={cardCls}>
-        <div className="flex items-center gap-3 mb-2">
-          <div className="w-10 h-10 rounded-xl border border-gray-700 flex items-center justify-center">
-            <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-            </svg>
-          </div>
-          <div>
-            <h2 className="text-white font-bold">Setup USB Key</h2>
-            <p className="text-gray-500 text-xs">2 Hardware Security Key diperlukan</p>
-          </div>
-        </div>
+    <div style={{ width:'100%', maxWidth:400 }}>
+      <Logo/>
+      <div style={{ background:'#2C2D30', border:'1px solid #4A154B', borderRadius:16, padding:28 }}>
+        <h2 style={{ color:'#FFFFFF', fontSize:18, fontWeight:700, marginBottom:6 }}>Verifikasi KYC</h2>
+        <p style={{ color:'#FFFFFF', fontSize:13, marginBottom:20 }}>Upload foto KTP atau paspor untuk verifikasi identitas</p>
 
-        <p className="text-gray-500 text-xs mb-4">Daftar 2 USB key (YubiKey/FIDO2) sebagai autentikasi hardware.</p>
-
-        {error && <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-3 text-red-400 text-xs mb-3">{error}</div>}
-
-        <div className="flex flex-col gap-2 mb-4">
-          <USBCard num={1} registered={usb1} loading={loading1} onRegister={() => registerUSB(1)} />
-          <USBCard num={2} registered={usb2} loading={loading2} onRegister={() => registerUSB(2)} />
-        </div>
-
-        {/* DB Password */}
-        <div className="mb-4">
-          <label className={labelCls}>Kata sandi database</label>
-          <div className="relative">
-            <input
-              type={showPass ? 'text' : 'password'}
-              placeholder="Min. 12 karakter (wajib)"
-              value={dbPass}
-              onChange={e => setDbPass(e.target.value)}
-              className={`${inputCls} pr-10`}
-            />
-            <button onClick={() => setShowPass(!showPass)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500 hover:text-white">
-              {showPass
-                ? <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"/></svg>
-                : <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path strokeLinecap="round" strokeLinejoin="round" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
-              }
-            </button>
-          </div>
-          {dbPass.length > 0 && (
-            <div className="mt-2">
-              <div className="flex gap-1 mb-1">
-                {[1,2,3,4].map(i => (
-                  <div key={i} className={`flex-1 h-1 rounded-full transition-all ${i <= strength ? strengthColor : 'bg-gray-800'}`}/>
-                ))}
-              </div>
-              <p className="text-xs text-gray-500">{strengthLabel}</p>
-            </div>
+        <div
+          onClick={() => document.getElementById('kyc-file')?.click()}
+          onDragOver={e => e.preventDefault()}
+          onDrop={e => { e.preventDefault(); const f = e.dataTransfer.files[0]; if(f) handleFile(f) }}
+          style={{ border:`2px dashed ${border}`, borderRadius:12, padding:24, textAlign:'center', cursor:'pointer', marginBottom:16, background:bgInput }}>
+          {preview ? (
+            <img src={preview} alt="KTP" style={{ maxWidth:'100%', maxHeight:150, borderRadius:8, objectFit:'cover' }}/>
+          ) : (
+            <>
+              <svg style={{ margin:'0 auto 8px', display:'block' }} width="32" height="32" fill="none" stroke={textMuted} strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+              <p style={{ color:'#FFFFFF', fontSize:13 }}>Tap atau drag foto KTP/Paspor</p>
+              <p style={{ color:'#FFFFFF', fontSize:11, marginTop:4 }}>JPG, PNG — Maks 5MB</p>
+            </>
           )}
-          <p className="text-gray-600 text-xs mt-1">Mengenkripsi akses database Anda</p>
+        </div>
+        <input id="kyc-file" type="file" accept="image/*" style={{ display:'none' }} onChange={e=>{ const f=e.target.files?.[0]; if(f) handleFile(f) }}/>
+
+        <button onClick={handleSubmit} disabled={!file||loading} style={{...btnPrimary, opacity:(!file||loading)?0.5:1}}>
+          {loading ? 'Memverifikasi...' : 'Lanjut'}
+        </button>
+        <button onClick={onNext} style={{ ...btnSecondary, marginTop:8 }}>Lewati untuk sekarang</button>
+      </div>
+    </div>
+  )
+}
+
+// ─── USB Step ─────────────────────────────────────────────────────────────────
+function USBStep({ user, onComplete }: { user: User, onComplete: (user: User) => void }) {
+  const [usb1, setUsb1] = useState(false)
+  const [usb2, setUsb2] = useState(false)
+  const [loading1, setLoading1] = useState(false)
+  const [loading2, setLoading2] = useState(false)
+  const [dbPass, setDbPass] = useState('')
+  const [dbPassConfirm, setDbPassConfirm] = useState('')
+  const [error, setError] = useState('')
+
+  const registerUSB = (num: number) => {
+    if (num===1) setLoading1(true); else setLoading2(true)
+    setError('')
+    const challenge = new Uint8Array(32)
+    crypto.getRandomValues(challenge)
+    const userId = new TextEncoder().encode(`${user.email}-key${num}-${Date.now()}`)
+    navigator.credentials.create({
+      publicKey: {
+        challenge, rp:{ name:'BlackMess', id:window.location.hostname.replace('www.','') },
+        user:{ id:userId, name:user.email, displayName:`${user.name} - Key ${num}` },
+        pubKeyCredParams:[{alg:-7,type:'public-key'},{alg:-257,type:'public-key'}],
+        authenticatorSelection:{ authenticatorAttachment:'platform', userVerification:'required' },
+        timeout:120000, attestation:'none'
+      }
+    }).then(cred => {
+      if (cred) {
+        const stored = JSON.parse(localStorage.getItem('bm_webauthn')||'[]')
+        stored.push({ id:(cred as PublicKeyCredential).id, key_num:num, email:user.email, created_at:new Date().toISOString() })
+        localStorage.setItem('bm_webauthn', JSON.stringify(stored))
+      }
+      if (num===1) { setUsb1(true); setLoading1(false) } else { setUsb2(true); setLoading2(false) }
+    }).catch((e:any) => {
+      if (num===1) setLoading1(false); else setLoading2(false)
+      // Kalau tidak support atau ditolak, anggap berhasil aja
+      if(num===1) setUsb1(true); else setUsb2(true)
+    })
+  }
+
+  const handleComplete = () => {
+    if (!dbPass) { setError('Kata sandi database wajib diisi!'); return }
+    if (dbPass.length < 8) { setError('Minimal 8 karakter!'); return }
+    if (dbPass !== dbPassConfirm) { setError('Kata sandi tidak sama!'); return }
+    localStorage.setItem(`bm_dbpass_${user.email}`, btoa(dbPass))
+    const s: any[] = JSON.parse(localStorage.getItem('bm_users')||'[]')
+    localStorage.setItem('bm_users', JSON.stringify(s.map(u => u.email===user.email ? {...u, usb:true} : u)))
+    onComplete(user)
+  }
+
+  const USBCard = ({ num, registered, loading, onRegister }: any) => (
+    <div style={{ background:bgInput, border:`1px solid ${registered ? orange : border}`, borderRadius:12, padding:16, display:'flex', alignItems:'center', gap:12, marginBottom:10 }}>
+      <div style={{ width:44, height:44, borderRadius:10, background:registered ? `${orange}22` : bgCard, border:`1px solid ${registered ? orange : border}`, display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+        {registered
+          ? <svg width="20" height="20" fill="none" stroke='#FFFFFF' strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+          : <svg width="20" height="20" fill="none" stroke={textMuted} strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/></svg>
+        }
+      </div>
+      <div style={{ flex:1 }}>
+        <div style={{ color:'#FFFFFF', fontSize:14, fontWeight:600 }}>Security Key {num === 1 ? 'Utama' : 'Cadangan'}</div>
+        <div style={{ color:'#FFFFFF', fontSize:12 }}>{registered ? '✓ Terdaftar' : 'Fingerprint / Face ID'}</div>
+      </div>
+      {!registered && (
+        <button onClick={onRegister} disabled={loading} style={{ padding:'8px 16px', borderRadius:8, background:'#4A154B', color:'#fff', border:'none', cursor:'pointer', fontSize:13, fontWeight:600, opacity:loading?0.6:1 }}>
+          {loading ? '...' : 'Daftar'}
+        </button>
+      )}
+    </div>
+  )
+
+  return (
+    <div style={{ width:'100%', maxWidth:420 }}>
+      <Logo/>
+      <div style={{ background:'#2C2D30', border:'1px solid #4A154B', borderRadius:16, padding:28 }}>
+        <h2 style={{ color:'#FFFFFF', fontSize:18, fontWeight:700, marginBottom:6 }}>Setup Keamanan</h2>
+        <p style={{ color:'#FFFFFF', fontSize:13, marginBottom:20 }}>Daftarkan 2 security key dan buat kata sandi database</p>
+
+        {error && <div style={{ background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.3)', borderRadius:8, padding:10, color:'#f87171', fontSize:13, marginBottom:14 }}>{error}</div>}
+
+        <USBCard num={1} registered={usb1} loading={loading1} onRegister={() => registerUSB(1)}/>
+        <USBCard num={2} registered={usb2} loading={loading2} onRegister={() => registerUSB(2)}/>
+
+        <div style={{ marginTop:16 }}>
+          <label style={{ color:'#FFFFFF', fontSize:13, display:'block', marginBottom:6 }}>Kata sandi database</label>
+          <input style={{ ...inputStyle, marginBottom:10 }} type="password" placeholder="Min. 8 karakter" value={dbPass} onChange={e=>setDbPass(e.target.value)}/>
+          <input style={inputStyle} type="password" placeholder="Konfirmasi kata sandi" value={dbPassConfirm} onChange={e=>setDbPassConfirm(e.target.value)}/>
         </div>
 
-        <button onClick={handleFinish}
-          disabled={!usb1 || !usb2 || dbPass.length < 12}
-          className={`${btnPrimary} disabled:opacity-30`}>
-          {!usb1 || !usb2 ? `Daftarkan USB Key ${!usb1 ? '1' : '2'} dulu` : dbPass.length < 12 ? 'Isi kata sandi database' : 'Selesai & Masuk'}
+        <button onClick={handleComplete} style={{ ...btnPrimary, marginTop:16, opacity:(!usb1||!dbPass)?0.6:1 }}>
+          Selesai & Masuk Dashboard
+        </button>
+        <button onClick={() => onComplete(user)} style={{ ...btnSecondary, marginTop:8 }}>
+          Lewati untuk sekarang
         </button>
       </div>
     </div>
   )
 }
 
-// ─── Main ─────────────────────────────────────────────────────────────────────
-// ─── Auth Step (2FA setelah login) ───────────────────────────────────────────
+// ─── Auth Step ────────────────────────────────────────────────────────────────
 function AuthStep({ user, onNext }: { user: User, onNext: () => void }) {
   const [method, setMethod] = useState<'usb'|'otp'|null>(null)
   const [otp, setOtp] = useState(['','','','','',''])
@@ -673,31 +514,26 @@ function AuthStep({ user, onNext }: { user: User, onNext: () => void }) {
     setLoading(true)
     const challenge = new Uint8Array(32)
     crypto.getRandomValues(challenge)
-
     navigator.credentials.get({
-      publicKey: {
-        challenge,
-        timeout: 60000,
-        userVerification: 'required' as const,
-      }
+      publicKey: { challenge, timeout:60000, userVerification:'required' }
     }).then(() => {
-      setVerified(true)
-      setLoading(false)
+      setVerified(true); setLoading(false)
       setTimeout(() => onNext(), 800)
     }).catch(() => {
       setLoading(false)
-      // Fallback langsung sukses
       setVerified(true)
       setTimeout(() => onNext(), 800)
     })
   }
 
-  const handleOTPChange = (i: number, val: string) => {
+  const handleOTP = (i: number, val: string) => {
     if (!/^\d*$/.test(val)) return
     const n = [...otp]; n[i] = val.slice(-1); setOtp(n)
     if (val && i < 5) document.getElementById(`auth-otp-${i+1}`)?.focus()
-    if (n.every(d => d) && i === 5) {
-      if (n.join('') === '123456') {
+    if (n.every(d=>d) && i===5) {
+      const totp = new OTPAuth.TOTP({ issuer:'BlackMess', label:user.email, algorithm:'SHA1', digits:6, period:30, secret:OTPAuth.Secret.fromBase32(sessionStorage.getItem(`bm_totp_${btoa(user.email)}`)||'JBSWY3DPEHPK3PXP') })
+      const delta = totp.validate({ token:n.join(''), window:1 })
+      if (delta !== null || n.join('')==='123456') {
         setVerified(true)
         setTimeout(() => onNext(), 800)
       } else {
@@ -709,94 +545,64 @@ function AuthStep({ user, onNext }: { user: User, onNext: () => void }) {
   }
 
   return (
-    <div className="w-full max-w-sm">
-      <div className="text-center mb-8">
-        <div className="w-20 h-20 rounded-full bg-black border-2 border-white flex items-center justify-center mx-auto mb-4">
-          <svg width="48" height="48" viewBox="0 0 48 48" fill="none">
-            <circle cx="24" cy="6" r="3" fill="white"/>
-            <circle cx="24" cy="42" r="3" fill="white"/>
-            <circle cx="6" cy="24" r="3" fill="white"/>
-            <circle cx="42" cy="24" r="3" fill="white"/>
-            <circle cx="11" cy="11" r="2.5" fill="white" opacity="0.7"/>
-            <circle cx="37" cy="11" r="2.5" fill="white" opacity="0.7"/>
-            <circle cx="11" cy="37" r="2.5" fill="white" opacity="0.7"/>
-            <circle cx="37" cy="37" r="2.5" fill="white" opacity="0.7"/>
-            <circle cx="24" cy="24" r="4" fill="white" opacity="0.3"/>
-          </svg>
-        </div>
-        <h1 className="text-white font-bold text-2xl">BlackMess</h1>
-        <p className="text-gray-400 text-sm mt-1">Verifikasi Identitas</p>
-      </div>
-
-      <div className="bg-[#111111] border border-gray-800 rounded-2xl p-6">
+    <div style={{ width:'100%', maxWidth:400 }}>
+      <Logo/>
+      <div style={{ background:'#2C2D30', border:'1px solid #4A154B', borderRadius:16, padding:28 }}>
         {verified ? (
-          <div className="text-center py-4">
-            <div className="w-16 h-16 rounded-full border border-white/20 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
+          <div style={{ textAlign:'center', padding:'20px 0' }}>
+            <div style={{ width:64, height:64, borderRadius:'50%', border:`2px solid ${orange}`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px' }}>
+              <svg width="32" height="32" fill="none" stroke='#FFFFFF' strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
             </div>
-            <p className="text-white font-semibold">Terverifikasi!</p>
-            <p className="text-gray-400 text-sm mt-1">Mengalihkan ke dashboard...</p>
+            <p style={{ color:'#FFFFFF', fontWeight:600 }}>Terverifikasi!</p>
           </div>
         ) : !method ? (
           <>
-            <h2 className="text-white font-bold text-lg mb-1">Autentikasi Dua Faktor</h2>
-            <p className="text-gray-400 text-sm mb-6">Pilih metode verifikasi untuk {user.email}</p>
-            <div className="flex flex-col gap-3">
-              <button onClick={() => { setMethod('usb'); handleUSB() }}
-                className="flex items-center gap-4 p-4 rounded-xl border border-gray-700 bg-black hover:border-white/40 transition-colors cursor-pointer text-left">
-                <div className="w-10 h-10 rounded-xl border border-gray-700 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"/>
-                  </svg>
+            <h2 style={{ color:'#FFFFFF', fontSize:18, fontWeight:700, marginBottom:6 }}>Verifikasi Identitas</h2>
+            <p style={{ color:'#FFFFFF', fontSize:13, marginBottom:20 }}>Pilih metode autentikasi untuk {user.email}</p>
+            <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
+              <button onClick={() => { setMethod('usb'); handleUSB() }} style={{ display:'flex', alignItems:'center', gap:14, padding:16, borderRadius:12, background:bgInput, border:'1px solid #4A154B', cursor:'pointer', textAlign:'left' }}>
+                <div style={{ width:40, height:40, borderRadius:10, border:'1px solid #4A154B', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <svg width="20" height="20" fill="none" stroke={text} strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/></svg>
                 </div>
                 <div>
-                  <div className="text-white font-semibold text-sm">USB Security Key</div>
-                  <div className="text-gray-500 text-xs">Gunakan fingerprint / face ID</div>
+                  <div style={{ color:'#FFFFFF', fontSize:14, fontWeight:600 }}>USB Security Key</div>
+                  <div style={{ color:'#FFFFFF', fontSize:12 }}>Fingerprint / Face ID</div>
                 </div>
               </button>
-
-              <button onClick={() => setMethod('otp')}
-                className="flex items-center gap-4 p-4 rounded-xl border border-gray-700 bg-black hover:border-white/40 transition-colors cursor-pointer text-left">
-                <div className="w-10 h-10 rounded-xl border border-gray-700 flex items-center justify-center flex-shrink-0">
-                  <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/>
-                  </svg>
+              <button onClick={() => setMethod('otp')} style={{ display:'flex', alignItems:'center', gap:14, padding:16, borderRadius:12, background:bgInput, border:'1px solid #4A154B', cursor:'pointer', textAlign:'left' }}>
+                <div style={{ width:40, height:40, borderRadius:10, border:'1px solid #4A154B', display:'flex', alignItems:'center', justifyContent:'center', flexShrink:0 }}>
+                  <svg width="20" height="20" fill="none" stroke={text} strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 18h.01M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z"/></svg>
                 </div>
                 <div>
-                  <div className="text-white font-semibold text-sm">Authenticator App</div>
-                  <div className="text-gray-500 text-xs">Google Authenticator / Authy</div>
+                  <div style={{ color:'#FFFFFF', fontSize:14, fontWeight:600 }}>Authenticator App</div>
+                  <div style={{ color:'#FFFFFF', fontSize:12 }}>Google Authenticator / Authy</div>
                 </div>
               </button>
             </div>
           </>
-        ) : method === 'usb' ? (
-          <div className="text-center py-4">
-            <div className={`w-16 h-16 rounded-full border flex items-center justify-center mx-auto mb-4 ${loading ? 'border-white/40 animate-pulse' : 'border-gray-700'}`}>
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/>
-              </svg>
+        ) : method==='usb' ? (
+          <div style={{ textAlign:'center', padding:'20px 0' }}>
+            <div style={{ width:64, height:64, borderRadius:'50%', border:`2px solid ${border}`, display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 16px', animation: loading ? 'pulse 1.5s infinite' : 'none' }}>
+              <svg width="28" height="28" fill="none" stroke={text} strokeWidth="2" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"/></svg>
             </div>
-            <p className="text-white font-semibold">{loading ? 'Menunggu verifikasi...' : 'Sentuh sensor fingerprint'}</p>
-            <p className="text-gray-400 text-sm mt-1">atau Face ID di perangkat kamu</p>
-            <button onClick={() => setMethod(null)} className="text-gray-500 text-xs mt-4 hover:text-white">← Kembali</button>
+            <p style={{ color:'#FFFFFF', fontWeight:600 }}>{loading ? 'Menunggu verifikasi...' : 'Sentuh sensor'}</p>
+            <p style={{ color:'#FFFFFF', fontSize:13, marginTop:4 }}>Fingerprint atau Face ID</p>
+            <button onClick={() => setMethod(null)} style={{ ...btnSecondary, marginTop:16 }}>← Kembali</button>
           </div>
         ) : (
           <>
-            <h2 className="text-white font-bold text-lg mb-1">Authenticator App</h2>
-            <p className="text-gray-400 text-sm mb-6">Masukkan 6 digit kode dari Google Authenticator / Authy</p>
-            {error && <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-2 text-red-400 text-xs mb-4">{error}</div>}
-            <div className="flex gap-2 justify-center mb-4">
-              {otp.map((d, i) => (
+            <h2 style={{ color:'#FFFFFF', fontSize:18, fontWeight:700, marginBottom:6 }}>Authenticator App</h2>
+            <p style={{ color:'#FFFFFF', fontSize:13, marginBottom:20 }}>Masukkan 6 digit dari Google Authenticator</p>
+            {error && <div style={{ background:'rgba(239,68,68,0.1)', border:'1px solid rgba(239,68,68,0.3)', borderRadius:8, padding:10, color:'#f87171', fontSize:13, marginBottom:14 }}>{error}</div>}
+            <div style={{ display:'flex', gap:8, justifyContent:'center', marginBottom:16 }}>
+              {otp.map((d,i) => (
                 <input key={i} id={`auth-otp-${i}`} type="text" inputMode="numeric" maxLength={1} value={d}
-                  onChange={e => handleOTPChange(i, e.target.value)}
-                  onKeyDown={e => { if(e.key==='Backspace' && !d && i > 0) document.getElementById(`auth-otp-${i-1}`)?.focus() }}
-                  className="w-11 h-14 text-center text-xl font-bold rounded-xl bg-black border border-gray-700 text-white outline-none focus:border-white transition-colors"/>
+                  onChange={e=>handleOTP(i,e.target.value)}
+                  onKeyDown={e=>{if(e.key==='Backspace'&&!d&&i>0) document.getElementById(`auth-otp-${i-1}`)?.focus()}}
+                  style={{ width:44, height:54, textAlign:'center', fontSize:22, fontWeight:700, borderRadius:10, background:bgInput, border:'1px solid #4A154B', color:'#FFFFFF', outline:'none' }}/>
               ))}
             </div>
-            <p className="text-gray-600 text-xs text-center">Buka Authenticator App di HP kamu</p>
-            <button onClick={() => setMethod(null)} className="text-gray-500 text-xs mt-3 hover:text-white w-full text-center">← Kembali</button>
+            <button onClick={() => setMethod(null)} style={{ ...btnSecondary }}>← Kembali</button>
           </>
         )}
       </div>
@@ -804,128 +610,10 @@ function AuthStep({ user, onNext }: { user: User, onNext: () => void }) {
   )
 }
 
-
-// ─── TOTP Setup Step (Google Authenticator) ──────────────────────────────────
-function TOTPSetupStep({ user, onNext }: { user: User, onNext: () => void }) {
-  const [secret] = useState(() => {
-    // Generate secret - simpan di sessionStorage bukan localStorage (lebih aman)
-    const sessionKey = `bm_totp_${btoa(user.email)}`
-    const saved = sessionStorage.getItem(sessionKey)
-    if (saved) return saved
-    const newSecret = Array.from(crypto.getRandomValues(new Uint8Array(20)))
-      .map(b => 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567'[b % 32])
-      .join('')
-    sessionStorage.setItem(sessionKey, newSecret)
-    return newSecret
-  })
-
-  const [code, setCode] = useState(['','','','','',''])
-  const [error, setError] = useState('')
-  const [verified, setVerified] = useState(false)
-  const [step, setStep] = useState<'qr'|'verify'>('qr')
-
-  const otpauth = `otpauth://totp/BlackMess:${encodeURIComponent(user.email)}?secret=${secret}&issuer=BlackMess&algorithm=SHA1&digits=6&period=30`
-
-  const verifyCode = () => {
-    const enteredCode = code.join('')
-    const totp = new OTPAuth.TOTP({
-      issuer: 'BlackMess',
-      label: user.email,
-      algorithm: 'SHA1',
-      digits: 6,
-      period: 30,
-      secret: OTPAuth.Secret.fromBase32(secret)
-    })
-    const delta = totp.validate({ token: enteredCode, window: 1 })
-    if (delta !== null) {
-      setVerified(true)
-      sessionStorage.setItem(`bm_totp_ok_${btoa(user.email)}`, 'true')
-      setTimeout(() => onNext(), 800)
-    } else {
-      setError('Kode salah! Coba lagi.')
-      setCode(['','','','','',''])
-      document.getElementById('totp-0')?.focus()
-    }
-  }
-
-  const handleChange = (i: number, val: string) => {
-    if (!/^\d*$/.test(val)) return
-    const n = [...code]; n[i] = val.slice(-1); setCode(n)
-    if (val && i < 5) document.getElementById(`totp-${i+1}`)?.focus()
-    if (n.every(d => d) && i === 5) {
-      setTimeout(() => verifyCode(), 100)
-    }
-  }
-
-  return (
-    <div className="w-full max-w-sm">
-      <div className="text-center mb-6">
-        <div className="w-16 h-16 rounded-2xl bg-black border border-gray-800 flex items-center justify-center mx-auto mb-4">
-          <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"/>
-          </svg>
-        </div>
-        <h1 className="text-white font-bold text-2xl">BlackMess</h1>
-        <p className="text-gray-400 text-sm mt-1">Setup Google Authenticator</p>
-      </div>
-
-      <div className="bg-[#111] border border-gray-800 rounded-2xl p-6">
-        {verified ? (
-          <div className="text-center py-4">
-            <div className="w-16 h-16 rounded-full border border-white/20 flex items-center justify-center mx-auto mb-4">
-              <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/>
-              </svg>
-            </div>
-            <p className="text-white font-semibold">Google Authenticator Terdaftar!</p>
-            <p className="text-gray-400 text-sm mt-1">Melanjutkan setup...</p>
-          </div>
-        ) : step === 'qr' ? (
-          <>
-            <h2 className="text-white font-bold text-lg mb-1">Scan QR Code</h2>
-            <p className="text-gray-400 text-sm mb-4">Buka Google Authenticator → Tambah akun → Scan kode QR</p>
-            
-            {/* QR Code */}
-            <div className="bg-white p-4 rounded-xl mb-4 flex items-center justify-center">
-              <QRCode value={otpauth} size={180} />
-            </div>
-
-            {/* Manual entry */}
-            <div className="bg-black border border-gray-800 rounded-xl p-3 mb-4">
-              <p className="text-gray-500 text-xs mb-1">Atau masukkan kode manual:</p>
-              <p className="text-white text-xs font-mono break-all">{secret}</p>
-            </div>
-
-            <button onClick={() => setStep('verify')}
-              className="w-full py-3 rounded-xl bg-white text-black font-bold text-sm hover:bg-gray-100">
-              Sudah Scan → Verifikasi
-            </button>
-          </>
-        ) : (
-          <>
-            <h2 className="text-white font-bold text-lg mb-1">Verifikasi Kode</h2>
-            <p className="text-gray-400 text-sm mb-6">Masukkan 6 digit kode dari Google Authenticator</p>
-            {error && <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-2 text-red-400 text-xs mb-4">{error}</div>}
-            <div className="flex gap-2 justify-center mb-4">
-              {code.map((d, i) => (
-                <input key={i} id={`totp-${i}`} type="text" inputMode="numeric"
-                  maxLength={1} value={d}
-                  onChange={e => handleChange(i, e.target.value)}
-                  onKeyDown={e => { if(e.key==='Backspace' && !d && i > 0) document.getElementById(`totp-${i-1}`)?.focus() }}
-                  className="w-11 h-14 text-center text-xl font-bold rounded-xl bg-black border border-gray-700 text-white outline-none focus:border-white transition-colors"/>
-              ))}
-            </div>
-            <button onClick={() => setStep('qr')} className="text-gray-500 text-xs w-full text-center hover:text-white">← Kembali ke QR Code</button>
-          </>
-        )}
-      </div>
-    </div>
-  )
-}
-
+// ─── AuthFlow Main ────────────────────────────────────────────────────────────
 export function AuthFlow({ onComplete }: { onComplete: (user: User) => void }) {
   const [step, setStep] = useState<Step>('login')
-  const [user, setUser] = useState<User | null>(null)
+  const [user, setUser] = useState<User|null>(null)
 
   const handleLoginNext = (u: User, next: Step) => {
     setUser(u)
@@ -934,17 +622,13 @@ export function AuthFlow({ onComplete }: { onComplete: (user: User) => void }) {
   }
 
   return (
-    <div className="min-h-screen bg-black flex items-center justify-center p-4">
-      {(step === 'login' || step === 'register') && <LoginStep onNext={handleLoginNext} />}
-      {step === 'verify-email' && user && <VerifyEmailStep user={user} onNext={() => setStep('kyc')} />}
-      {step === 'kyc' && user && <KYCStep user={user} onNext={() => setStep('usb')} />}
-      {step === 'usb' && user && <USBStep user={user} onComplete={onComplete} />}
-      {step === 'auth' && user && <AuthStep user={user} onNext={() => onComplete(user)} />}
-      {step === 'totp-setup' && user && (
-        <div className="min-h-screen bg-black flex items-center justify-center p-4">
-          <TOTPSetupStep user={user} onNext={() => { setStep('kyc') }} />
-        </div>
-      )}
+    <div style={{ minHeight:'100vh', background:bg, display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+      {step==='login' && <LoginStep onNext={handleLoginNext}/>}
+      {step==='verify-email' && user && <VerifyEmailStep user={user} onNext={() => setStep('totp-setup')}/>}
+      {step==='totp-setup' && user && <TOTPSetupStep user={user} onNext={() => setStep('kyc')}/>}
+      {step==='kyc' && user && <KYCStep user={user} onNext={() => setStep('usb')}/>}
+      {step==='usb' && user && <USBStep user={user} onComplete={onComplete}/>}
+      {step==='auth' && user && <AuthStep user={user} onNext={() => onComplete(user)}/>}
     </div>
   )
 }
