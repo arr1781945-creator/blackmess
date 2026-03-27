@@ -1,70 +1,23 @@
-# ============================================================
-# SecureBank Slack-Clone — requirements.txt
-# Django + Channels + DRF + PQC + E2EE
-# ============================================================
+gunicorn 
+psycopg2-binary 
+uvicorn 
+django-cors-headers 
+liboqs-python @ git+https://github.com/open-quantum-safe/liboqs-python.git 
+dj-database-url 
+djangorestframework 
+django-simple-history 
+whitenoise 
+django-environ 
+psycopg2-binary 
+django-environ 
+django-ipfs-storage 
+django-axes 
+django-csp 
+django-cors-headers 
+django-defender 
+rest_framework_simplejwt 
+channels 
+channels-redis
+ipfshttpclient
+djangorestframework
 
-# Core Django
-Django==4.2.13
-djangorestframework==3.15.1
-django-cors-headers==4.3.1
-django-environ==0.11.2
-django-extensions==3.2.3
-
-# WebSockets / Channels
-channels==4.0.0
-channels-redis==4.2.0
-daphne==4.0.0
-
-# Database
-psycopg2-binary==2.9.9
-django-db-geventpool==4.0.1
-
-# Auth & Security
-djangorestframework-simplejwt==5.3.1
-django-axes==6.4.0
-django-otp==1.3.0
-qrcode==7.4.2
-pyotp==2.9.0
-social-auth-app-django==5.4.0        # OAuth2
-
-# Cryptography
-cryptography==42.0.7
-pynacl==1.5.0
-
-# Storage / IPFS
-ipfshttpclient==0.8.0a2
-django-storages==1.14.3
-boto3==1.34.0                        # S3-compatible backup
-
-# Task Queue
-celery==5.3.6
-redis==5.0.4
-django-celery-beat==2.6.0
-
-# API Docs
-drf-spectacular==0.27.2              # OpenAPI 3 / Swagger
-
-# Compliance / Audit
-django-simple-history==3.5.0
-django-auditlog==2.3.0
-
-# Rate Limiting & Anti-Abuse
-django-ratelimit==4.1.0
-django-csp==3.8                      # Content-Security-Policy
-
-# Monitoring
-sentry-sdk==1.44.1
-prometheus-client==0.20.0
-
-# Utils
-Pillow==10.3.0
-python-magic==0.4.27
-shortuuid==1.0.13
-pydantic==2.7.1
-
-# Testing
-pytest==8.1.1
-pytest-django==4.8.0
-factory-boy==3.3.0
-gunicorn
-uvicorn

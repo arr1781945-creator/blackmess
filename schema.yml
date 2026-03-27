@@ -1,0 +1,2925 @@
+openapi: 3.0.3
+info:
+  title: SecureBank Messaging API
+  version: 2.0.0
+  description: Enterprise Banking Communication Platform — Ultra-Secure
+  contact:
+    email: apiteam@yourbank.com
+paths:
+  /api/v1/auth/invite/send/:
+    post:
+      operationId: auth_invite_send_create
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/auth/login/:
+    post:
+      operationId: auth_login_create
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/auth/logout/:
+    post:
+      operationId: auth_logout_create
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/auth/me/profile/:
+    get:
+      operationId: auth_me_profile_retrieve
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankUser'
+          description: ''
+    put:
+      operationId: auth_me_profile_update
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BankUserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BankUserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BankUserRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankUser'
+          description: ''
+    patch:
+      operationId: auth_me_profile_partial_update
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedBankUserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedBankUserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedBankUserRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankUser'
+          description: ''
+  /api/v1/auth/mfa/setup/:
+    post:
+      operationId: auth_mfa_setup_create
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/auth/mfa/verify/:
+    post:
+      operationId: auth_mfa_verify_create
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/auth/otp/send/:
+    post:
+      operationId: auth_otp_send_create
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/auth/otp/verify/:
+    post:
+      operationId: auth_otp_verify_create
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/auth/password/change/:
+    post:
+      operationId: auth_password_change_create
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/auth/public-keys/:
+    get:
+      operationId: auth_public_keys_list
+      parameters:
+      - name: cursor
+        required: false
+        in: query
+        description: The pagination cursor value.
+        schema:
+          type: string
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedUserPublicKeyList'
+          description: ''
+    post:
+      operationId: auth_public_keys_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UserPublicKeyRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/UserPublicKeyRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/UserPublicKeyRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserPublicKey'
+          description: ''
+  /api/v1/auth/refresh/:
+    post:
+      operationId: auth_refresh_create
+      description: |-
+        Takes a refresh type JSON web token and returns an access type JSON web
+        token if the refresh token is valid.
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/TokenRefreshRequest'
+        required: true
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TokenRefresh'
+          description: ''
+  /api/v1/auth/register/:
+    post:
+      operationId: auth_register_create
+      tags:
+      - auth
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BankUserRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/BankUserRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/BankUserRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BankUser'
+          description: ''
+  /api/v1/auth/sessions/:
+    get:
+      operationId: auth_sessions_retrieve
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/auth/totp/generate/:
+    post:
+      operationId: auth_totp_generate_create
+      description: Generate TOTP secret dan simpan di server
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/auth/totp/verify-setup/:
+    post:
+      operationId: auth_totp_verify_setup_create
+      description: Verifikasi TOTP saat setup
+      tags:
+      - auth
+      security:
+      - jwtAuth: []
+      - {}
+      responses:
+        '200':
+          description: No response body
+  /api/v1/compliance/audit-logs/:
+    get:
+      operationId: compliance_audit_logs_list
+      parameters:
+      - name: cursor
+        required: false
+        in: query
+        description: The pagination cursor value.
+        schema:
+          type: string
+      tags:
+      - compliance
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedAuditLogList'
+          description: ''
+  /api/v1/compliance/audit-logs/{id}/:
+    get:
+      operationId: compliance_audit_logs_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - compliance
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuditLog'
+          description: ''
+  /api/v1/compliance/export/:
+    get:
+      operationId: compliance_export_list
+      parameters:
+      - name: cursor
+        required: false
+        in: query
+        description: The pagination cursor value.
+        schema:
+          type: string
+      tags:
+      - compliance
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedExportRequestList'
+          description: ''
+    post:
+      operationId: compliance_export_create
+      tags:
+      - compliance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExportRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExportRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportRequest'
+          description: ''
+  /api/v1/compliance/export/{id}/:
+    get:
+      operationId: compliance_export_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - compliance
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportRequest'
+          description: ''
+    put:
+      operationId: compliance_export_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - compliance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExportRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExportRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportRequest'
+          description: ''
+    patch:
+      operationId: compliance_export_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - compliance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedExportRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedExportRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedExportRequestRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportRequest'
+          description: ''
+    delete:
+      operationId: compliance_export_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - compliance
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/compliance/export/{id}/approve/:
+    post:
+      operationId: compliance_export_approve_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - compliance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ExportRequestRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ExportRequestRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ExportRequestRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportRequest'
+          description: ''
+  /api/v1/compliance/reports/:
+    get:
+      operationId: compliance_reports_list
+      parameters:
+      - name: cursor
+        required: false
+        in: query
+        description: The pagination cursor value.
+        schema:
+          type: string
+      tags:
+      - compliance
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedComplianceReportList'
+          description: ''
+    post:
+      operationId: compliance_reports_create
+      tags:
+      - compliance
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ComplianceReportRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ComplianceReportRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ComplianceReportRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceReport'
+          description: ''
+  /api/v1/compliance/reports/{id}/:
+    get:
+      operationId: compliance_reports_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - compliance
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ComplianceReport'
+          description: ''
+  /api/v1/compliance/security-events/:
+    get:
+      operationId: compliance_security_events_list
+      parameters:
+      - name: cursor
+        required: false
+        in: query
+        description: The pagination cursor value.
+        schema:
+          type: string
+      tags:
+      - compliance
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedSecurityEventList'
+          description: ''
+  /api/v1/compliance/security-events/{id}/:
+    get:
+      operationId: compliance_security_events_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+          format: uuid
+        description: A UUID string identifying this security event.
+        required: true
+      tags:
+      - compliance
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityEvent'
+          description: ''
+  /api/v1/compliance/security-events/my_events/:
+    get:
+      operationId: compliance_security_events_my_events_retrieve
+      tags:
+      - compliance
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/SecurityEvent'
+          description: ''
+  /api/v1/msg/{channel_id}/messages/:
+    get:
+      operationId: msg_messages_list
+      parameters:
+      - in: path
+        name: channel_id
+        schema:
+          type: string
+        required: true
+      - name: cursor
+        required: false
+        in: query
+        description: The pagination cursor value.
+        schema:
+          type: string
+      tags:
+      - msg
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedMessageList'
+          description: ''
+    post:
+      operationId: msg_messages_create
+      parameters:
+      - in: path
+        name: channel_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - msg
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/MessageRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Message'
+          description: ''
+  /api/v1/msg/{channel_id}/threads/:
+    get:
+      operationId: msg_threads_list
+      parameters:
+      - in: path
+        name: channel_id
+        schema:
+          type: string
+        required: true
+      - name: cursor
+        required: false
+        in: query
+        description: The pagination cursor value.
+        schema:
+          type: string
+      tags:
+      - msg
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedThreadList'
+          description: ''
+    post:
+      operationId: msg_threads_create
+      parameters:
+      - in: path
+        name: channel_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - msg
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ThreadRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ThreadRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ThreadRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Thread'
+          description: ''
+  /api/v1/msg/{channel_id}/upload/:
+    post:
+      operationId: msg_upload_create
+      description: Upload file to IPFS — returns CID.
+      parameters:
+      - in: path
+        name: channel_id
+        schema:
+          type: string
+        required: true
+      tags:
+      - msg
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/msg/messages/{id}/delete/:
+    delete:
+      operationId: msg_messages_delete_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - msg
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/vault/blobs/:
+    get:
+      operationId: vault_blobs_list
+      parameters:
+      - name: cursor
+        required: false
+        in: query
+        description: The pagination cursor value.
+        schema:
+          type: string
+      tags:
+      - vault
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedEncryptedBlobList'
+          description: ''
+    post:
+      operationId: vault_blobs_create
+      tags:
+      - vault
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EncryptedBlobRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EncryptedBlobRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EncryptedBlobRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EncryptedBlob'
+          description: ''
+  /api/v1/vault/blobs/{id}/:
+    get:
+      operationId: vault_blobs_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - vault
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EncryptedBlob'
+          description: ''
+    put:
+      operationId: vault_blobs_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - vault
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/EncryptedBlobRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/EncryptedBlobRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/EncryptedBlobRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EncryptedBlob'
+          description: ''
+    patch:
+      operationId: vault_blobs_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - vault
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedEncryptedBlobRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedEncryptedBlobRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedEncryptedBlobRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EncryptedBlob'
+          description: ''
+    delete:
+      operationId: vault_blobs_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - vault
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/vault/hardware-keys/{id}/deactivate/:
+    delete:
+      operationId: vault_hardware_keys_deactivate_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - vault
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/vault/hardware-keys/challenge/:
+    post:
+      operationId: vault_hardware_keys_challenge_create
+      description: |-
+        Issue a FIDO2 challenge for hardware key authentication.
+        Client uses this challenge to produce a FIDO2 assertion.
+      tags:
+      - vault
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/vault/hardware-keys/list_keys/:
+    get:
+      operationId: vault_hardware_keys_list_keys_retrieve
+      tags:
+      - vault
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/vault/hardware-keys/register/:
+    post:
+      operationId: vault_hardware_keys_register_create
+      description: |-
+        Register a new hardware key in slot 1 or 2.
+        Requires: slot, key_type, label, credential_id (FIDO2), public_key (COSE)
+      tags:
+      - vault
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/vault/kyc/my_kyc/:
+    get:
+      operationId: vault_kyc_my_kyc_retrieve
+      tags:
+      - vault
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/vault/kyc/submit_kyc/:
+    post:
+      operationId: vault_kyc_submit_kyc_create
+      description: Submit KYC data — fields must be pre-encrypted by client.
+      tags:
+      - vault
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/vault/session/{id}/close/:
+    delete:
+      operationId: vault_session_close_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      tags:
+      - vault
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/vault/session/open/:
+    post:
+      operationId: vault_session_open_create
+      description: |-
+        Open a vault session.
+        Validates: clearance level, FIDO2 assertion, active HW key.
+        Returns: vault_session_token (valid for VAULT_SESSION_TTL_SECONDS).
+      tags:
+      - vault
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          description: No response body
+  /api/v1/workspaces/:
+    get:
+      operationId: workspaces_list
+      parameters:
+      - name: cursor
+        required: false
+        in: query
+        description: The pagination cursor value.
+        schema:
+          type: string
+      tags:
+      - workspaces
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedWorkspaceList'
+          description: ''
+    post:
+      operationId: workspaces_create
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WorkspaceRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WorkspaceRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+  /api/v1/workspaces/{slug}/:
+    get:
+      operationId: workspaces_retrieve
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+    put:
+      operationId: workspaces_update
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/WorkspaceRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/WorkspaceRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/WorkspaceRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+    patch:
+      operationId: workspaces_partial_update
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspaceRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspaceRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspaceRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+    delete:
+      operationId: workspaces_destroy
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/workspaces/{slug}/members/:
+    get:
+      operationId: workspaces_members_retrieve
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+  /api/v1/workspaces/{slug}/presence/:
+    get:
+      operationId: workspaces_presence_retrieve
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+  /api/v1/workspaces/{slug}/settings/:
+    patch:
+      operationId: workspaces_settings_partial_update
+      description: |-
+        A settings object that allows REST Framework settings to be accessed as
+        properties. For example:
+
+            from rest_framework.settings import api_settings
+            print(api_settings.DEFAULT_RENDERER_CLASSES)
+
+        Any setting with string import paths will be automatically resolved
+        and return the class, rather than the string literal.
+
+        Note:
+        This is an internal class that is only compatible with settings namespaced
+        under the REST_FRAMEWORK name. It is not intended to be used by 3rd-party
+        apps, and test helpers like `override_settings` may not work as expected.
+      parameters:
+      - in: path
+        name: slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspaceRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspaceRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedWorkspaceRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Workspace'
+          description: ''
+  /api/v1/workspaces/{workspace_slug}/channels/:
+    get:
+      operationId: workspaces_channels_list
+      parameters:
+      - name: cursor
+        required: false
+        in: query
+        description: The pagination cursor value.
+        schema:
+          type: string
+      - in: path
+        name: workspace_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/PaginatedChannelList'
+          description: ''
+    post:
+      operationId: workspaces_channels_create
+      parameters:
+      - in: path
+        name: workspace_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChannelRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChannelRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '201':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+          description: ''
+  /api/v1/workspaces/{workspace_slug}/channels/{id}/:
+    get:
+      operationId: workspaces_channels_retrieve
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: workspace_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+          description: ''
+    put:
+      operationId: workspaces_channels_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: workspace_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChannelRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChannelRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+          description: ''
+    patch:
+      operationId: workspaces_channels_partial_update
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: workspace_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/PatchedChannelRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/PatchedChannelRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/PatchedChannelRequest'
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+          description: ''
+    delete:
+      operationId: workspaces_channels_destroy
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: workspace_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      security:
+      - jwtAuth: []
+      responses:
+        '204':
+          description: No response body
+  /api/v1/workspaces/{workspace_slug}/channels/{id}/join/:
+    post:
+      operationId: workspaces_channels_join_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: workspace_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChannelRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChannelRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+          description: ''
+  /api/v1/workspaces/{workspace_slug}/channels/{id}/leave/:
+    post:
+      operationId: workspaces_channels_leave_create
+      parameters:
+      - in: path
+        name: id
+        schema:
+          type: string
+        required: true
+      - in: path
+        name: workspace_slug
+        schema:
+          type: string
+        required: true
+      tags:
+      - workspaces
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChannelRequest'
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/ChannelRequest'
+          multipart/form-data:
+            schema:
+              $ref: '#/components/schemas/ChannelRequest'
+        required: true
+      security:
+      - jwtAuth: []
+      responses:
+        '200':
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Channel'
+          description: ''
+components:
+  schemas:
+    Attachment:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        original_filename:
+          type: string
+          maxLength: 255
+        content_type:
+          type: string
+          maxLength: 128
+        size_bytes:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        storage_backend:
+          $ref: '#/components/schemas/StorageBackendEnum'
+        ipfs_cid:
+          type: string
+          maxLength: 128
+        checksum_sha256:
+          type: string
+          maxLength: 64
+        uploaded_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - checksum_sha256
+      - content_type
+      - id
+      - original_filename
+      - size_bytes
+      - uploaded_at
+    AttachmentRequest:
+      type: object
+      properties:
+        original_filename:
+          type: string
+          minLength: 1
+          maxLength: 255
+        content_type:
+          type: string
+          minLength: 1
+          maxLength: 128
+        size_bytes:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        storage_backend:
+          $ref: '#/components/schemas/StorageBackendEnum'
+        ipfs_cid:
+          type: string
+          maxLength: 128
+        checksum_sha256:
+          type: string
+          minLength: 1
+          maxLength: 64
+      required:
+      - checksum_sha256
+      - content_type
+      - original_filename
+      - size_bytes
+    AuditLog:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        event_type:
+          type: string
+          maxLength: 64
+        severity:
+          $ref: '#/components/schemas/SeverityEnum'
+        actor_username:
+          type: string
+          readOnly: true
+          default: system
+        actor_ip:
+          type: string
+          nullable: true
+        target_type:
+          type: string
+          maxLength: 32
+        target_id:
+          type: string
+          maxLength: 64
+        description:
+          type: string
+        metadata: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - actor_username
+      - created_at
+      - description
+      - event_type
+      - id
+    BankUser:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        username:
+          type: string
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        employee_id:
+          type: string
+          readOnly: true
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        department:
+          type: string
+          maxLength: 128
+        clearance_level:
+          allOf:
+          - $ref: '#/components/schemas/ClearanceLevelEnum'
+          readOnly: true
+          description: |-
+            1=Basic, 5=Executive. Controls vault access.
+
+            * `1` - Level 1
+            * `2` - Level 2
+            * `3` - Level 3
+            * `4` - Level 4
+            * `5` - Level 5
+        is_mfa_verified:
+          type: boolean
+        avatar_ipfs_cid:
+          type: string
+          maxLength: 128
+        last_active:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        is_locked:
+          type: boolean
+          readOnly: true
+          description: Admin/Axes hard lock
+        profile:
+          allOf:
+          - $ref: '#/components/schemas/UserProfile'
+          readOnly: true
+        roles:
+          type: string
+          readOnly: true
+      required:
+      - clearance_level
+      - employee_id
+      - id
+      - is_locked
+      - last_active
+      - profile
+      - roles
+      - username
+    BankUserRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        department:
+          type: string
+          maxLength: 128
+        is_mfa_verified:
+          type: boolean
+        avatar_ipfs_cid:
+          type: string
+          maxLength: 128
+      required:
+      - username
+    BlobTypeEnum:
+      enum:
+      - document
+      - certificate
+      - evidence
+      - secure_note
+      - key_backup
+      type: string
+      description: |-
+        * `document` - Document
+        * `certificate` - Certificate
+        * `evidence` - Audit Evidence
+        * `secure_note` - Secure Note
+        * `key_backup` - Key Backup
+    Channel:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        workspace:
+          type: string
+          format: uuid
+        name:
+          type: string
+          maxLength: 80
+        slug:
+          type: string
+          maxLength: 80
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        channel_type:
+          $ref: '#/components/schemas/ChannelTypeEnum'
+        is_archived:
+          type: boolean
+        is_read_only:
+          type: boolean
+        topic:
+          type: string
+          maxLength: 256
+        purpose:
+          type: string
+          maxLength: 512
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        last_activity:
+          type: string
+          format: date-time
+          readOnly: true
+        unread_count:
+          type: string
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - last_activity
+      - name
+      - slug
+      - unread_count
+      - workspace
+    ChannelRequest:
+      type: object
+      properties:
+        workspace:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 80
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        channel_type:
+          $ref: '#/components/schemas/ChannelTypeEnum'
+        is_archived:
+          type: boolean
+        is_read_only:
+          type: boolean
+        topic:
+          type: string
+          maxLength: 256
+        purpose:
+          type: string
+          maxLength: 512
+      required:
+      - name
+      - slug
+      - workspace
+    ChannelTypeEnum:
+      enum:
+      - public
+      - private
+      - dm
+      - group_dm
+      - announcement
+      - compliance
+      type: string
+      description: |-
+        * `public` - Public
+        * `private` - Private
+        * `dm` - Direct Message
+        * `group_dm` - Group DM
+        * `announcement` - Announcement
+        * `compliance` - Compliance (Read-Only)
+    ClearanceLevelEnum:
+      enum:
+      - 1
+      - 2
+      - 3
+      - 4
+      - 5
+      type: integer
+      description: |-
+        * `1` - Level 1
+        * `2` - Level 2
+        * `3` - Level 3
+        * `4` - Level 4
+        * `5` - Level 5
+    ComplianceRegionEnum:
+      enum:
+      - APAC
+      - EMEA
+      - AMER
+      type: string
+      description: |-
+        * `APAC` - Asia-Pacific
+        * `EMEA` - Europe/Middle East/Africa
+        * `AMER` - Americas
+    ComplianceReport:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        report_type:
+          $ref: '#/components/schemas/ReportTypeEnum'
+        title:
+          type: string
+          maxLength: 256
+        workspace:
+          type: string
+          format: uuid
+          nullable: true
+        date_from:
+          type: string
+          format: date-time
+        date_to:
+          type: string
+          format: date-time
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ComplianceReportStatusEnum'
+          readOnly: true
+        report_ipfs_cid:
+          type: string
+          readOnly: true
+          description: IPFS CID of encrypted PDF report
+        generated_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - date_from
+      - date_to
+      - generated_at
+      - id
+      - report_ipfs_cid
+      - report_type
+      - status
+      - title
+    ComplianceReportRequest:
+      type: object
+      properties:
+        report_type:
+          $ref: '#/components/schemas/ReportTypeEnum'
+        title:
+          type: string
+          minLength: 1
+          maxLength: 256
+        workspace:
+          type: string
+          format: uuid
+          nullable: true
+        date_from:
+          type: string
+          format: date-time
+        date_to:
+          type: string
+          format: date-time
+      required:
+      - date_from
+      - date_to
+      - report_type
+      - title
+    ComplianceReportStatusEnum:
+      enum:
+      - pending
+      - generating
+      - ready
+      - failed
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `generating` - Generating
+        * `ready` - Ready
+        * `failed` - Failed
+    EncryptedBlob:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        blob_type:
+          $ref: '#/components/schemas/BlobTypeEnum'
+        label:
+          type: string
+          maxLength: 128
+        content_type:
+          type: string
+          maxLength: 128
+        size_bytes:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        ipfs_cid:
+          type: string
+          readOnly: true
+          description: IPFS CID of encrypted blob
+        min_clearance:
+          type: integer
+          maximum: 32767
+          minimum: 0
+        destroy_at:
+          type: string
+          format: date-time
+          nullable: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - blob_type
+      - content_type
+      - created_at
+      - id
+      - ipfs_cid
+      - label
+      - size_bytes
+    EncryptedBlobRequest:
+      type: object
+      properties:
+        blob_type:
+          $ref: '#/components/schemas/BlobTypeEnum'
+        label:
+          type: string
+          minLength: 1
+          maxLength: 128
+        content_type:
+          type: string
+          minLength: 1
+          maxLength: 128
+        size_bytes:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        min_clearance:
+          type: integer
+          maximum: 32767
+          minimum: 0
+        destroy_at:
+          type: string
+          format: date-time
+          nullable: true
+      required:
+      - blob_type
+      - content_type
+      - label
+      - size_bytes
+    EventTypeEnum:
+      enum:
+      - LOGIN_SUCCESS
+      - LOGIN_FAIL
+      - ACCOUNT_LOCKED
+      - MFA_VERIFIED
+      - MFA_FAIL
+      - PASSWORD_CHANGED
+      - VAULT_OPENED
+      - VAULT_ACCESS_DENIED
+      - HW_KEY_REGISTERED
+      - SUSPICIOUS_ACTIVITY
+      - DATA_EXPORT
+      - TTL_WIPE
+      - SESSION_REVOKED
+      - INVALID_SIGNATURE
+      type: string
+      description: |-
+        * `LOGIN_SUCCESS` - Successful Login
+        * `LOGIN_FAIL` - Failed Login
+        * `ACCOUNT_LOCKED` - Account Locked
+        * `MFA_VERIFIED` - MFA Verified
+        * `MFA_FAIL` - MFA Failure
+        * `PASSWORD_CHANGED` - Password Changed
+        * `VAULT_OPENED` - Vault Session Opened
+        * `VAULT_ACCESS_DENIED` - Vault Access Denied
+        * `HW_KEY_REGISTERED` - Hardware Key Registered
+        * `SUSPICIOUS_ACTIVITY` - Suspicious Activity
+        * `DATA_EXPORT` - Data Export
+        * `TTL_WIPE` - Message TTL Wipe
+        * `SESSION_REVOKED` - Session Revoked
+        * `INVALID_SIGNATURE` - Invalid Message Signature
+    ExportRequest:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        export_type:
+          $ref: '#/components/schemas/ExportTypeEnum'
+        justification:
+          type: string
+        status:
+          allOf:
+          - $ref: '#/components/schemas/ExportStatusEnum'
+          readOnly: true
+        approved_by:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        approved_at:
+          type: string
+          format: date-time
+          readOnly: true
+          nullable: true
+        export_ipfs_cid:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - approved_at
+      - approved_by
+      - created_at
+      - export_ipfs_cid
+      - export_type
+      - id
+      - justification
+      - status
+    ExportRequestRequest:
+      type: object
+      properties:
+        export_type:
+          $ref: '#/components/schemas/ExportTypeEnum'
+        justification:
+          type: string
+          minLength: 1
+      required:
+      - export_type
+      - justification
+    ExportStatusEnum:
+      enum:
+      - pending
+      - approved
+      - denied
+      - completed
+      type: string
+      description: |-
+        * `pending` - Pending
+        * `approved` - Approved
+        * `denied` - Denied
+        * `completed` - Completed
+    ExportTypeEnum:
+      enum:
+      - messages
+      - audit_logs
+      - user_data
+      type: string
+      description: |-
+        * `messages` - Messages
+        * `audit_logs` - Audit Logs
+        * `user_data` - User Data
+    KeyTypeEnum:
+      enum:
+      - rsa_4096
+      - ec_p384
+      - kyber_1024
+      - ml_dsa_65
+      type: string
+      description: |-
+        * `rsa_4096` - RSA-4096
+        * `ec_p384` - ECDH P-384
+        * `kyber_1024` - Kyber-1024 (PQC KEM)
+        * `ml_dsa_65` - Dilithium3 (PQC Sig)
+    Message:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        channel:
+          type: string
+          format: uuid
+        sender:
+          type: string
+          format: uuid
+          readOnly: true
+          nullable: true
+        sender_username:
+          type: string
+          readOnly: true
+        sender_avatar:
+          type: string
+          readOnly: true
+        ciphertext_b64:
+          type: string
+          description: AES-256-GCM encrypted message body
+        nonce_b64:
+          type: string
+          description: 12-byte GCM nonce, base64
+          maxLength: 32
+        auth_tag_b64:
+          type: string
+          description: 16-byte GCM auth tag, base64
+          maxLength: 32
+        kyber_ciphertext_b64:
+          type: string
+          description: Kyber-1024 encapsulated symmetric key
+        dilithium_signature_b64:
+          type: string
+          description: Dilithium3 message signature
+        message_type:
+          $ref: '#/components/schemas/MessageTypeEnum'
+        is_edited:
+          type: boolean
+          readOnly: true
+        is_deleted:
+          type: boolean
+          readOnly: true
+        ttl_seconds:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+          description: Seconds until hard-delete. Null = use channel/workspace policy.
+        destroy_at:
+          type: string
+          format: date-time
+          nullable: true
+        thread:
+          type: string
+          format: uuid
+          nullable: true
+        reply_count:
+          type: string
+          readOnly: true
+        reactions:
+          type: array
+          items:
+            $ref: '#/components/schemas/Reaction'
+          readOnly: true
+        attachments:
+          type: array
+          items:
+            $ref: '#/components/schemas/Attachment'
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        updated_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - attachments
+      - auth_tag_b64
+      - channel
+      - ciphertext_b64
+      - created_at
+      - id
+      - is_deleted
+      - is_edited
+      - nonce_b64
+      - reactions
+      - reply_count
+      - sender
+      - sender_avatar
+      - sender_username
+      - updated_at
+    MessageRequest:
+      type: object
+      properties:
+        channel:
+          type: string
+          format: uuid
+        ciphertext_b64:
+          type: string
+          minLength: 1
+          description: AES-256-GCM encrypted message body
+        nonce_b64:
+          type: string
+          minLength: 1
+          description: 12-byte GCM nonce, base64
+          maxLength: 32
+        auth_tag_b64:
+          type: string
+          minLength: 1
+          description: 16-byte GCM auth tag, base64
+          maxLength: 32
+        kyber_ciphertext_b64:
+          type: string
+          description: Kyber-1024 encapsulated symmetric key
+        dilithium_signature_b64:
+          type: string
+          description: Dilithium3 message signature
+        message_type:
+          $ref: '#/components/schemas/MessageTypeEnum'
+        ttl_seconds:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          nullable: true
+          description: Seconds until hard-delete. Null = use channel/workspace policy.
+        destroy_at:
+          type: string
+          format: date-time
+          nullable: true
+        thread:
+          type: string
+          format: uuid
+          nullable: true
+      required:
+      - auth_tag_b64
+      - channel
+      - ciphertext_b64
+      - nonce_b64
+    MessageTypeEnum:
+      enum:
+      - text
+      - file
+      - system
+      - call
+      type: string
+      description: |-
+        * `text` - Text
+        * `file` - File
+        * `system` - System
+        * `call` - Call Event
+    PaginatedAuditLogList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cD00ODY%3D"
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cj0xJnA9NDg3
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/AuditLog'
+    PaginatedChannelList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cD00ODY%3D"
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cj0xJnA9NDg3
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Channel'
+    PaginatedComplianceReportList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cD00ODY%3D"
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cj0xJnA9NDg3
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ComplianceReport'
+    PaginatedEncryptedBlobList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cD00ODY%3D"
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cj0xJnA9NDg3
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/EncryptedBlob'
+    PaginatedExportRequestList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cD00ODY%3D"
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cj0xJnA9NDg3
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExportRequest'
+    PaginatedMessageList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cD00ODY%3D"
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cj0xJnA9NDg3
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Message'
+    PaginatedSecurityEventList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cD00ODY%3D"
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cj0xJnA9NDg3
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/SecurityEvent'
+    PaginatedThreadList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cD00ODY%3D"
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cj0xJnA9NDg3
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Thread'
+    PaginatedUserPublicKeyList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cD00ODY%3D"
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cj0xJnA9NDg3
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserPublicKey'
+    PaginatedWorkspaceList:
+      type: object
+      required:
+      - results
+      properties:
+        next:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cD00ODY%3D"
+        previous:
+          type: string
+          nullable: true
+          format: uri
+          example: http://api.example.org/accounts/?cursor=cj0xJnA9NDg3
+        results:
+          type: array
+          items:
+            $ref: '#/components/schemas/Workspace'
+    PatchedBankUserRequest:
+      type: object
+      properties:
+        username:
+          type: string
+          minLength: 1
+          description: Required. 150 characters or fewer. Letters, digits and @/./+/-/_
+            only.
+          pattern: ^[\w.@+-]+$
+          maxLength: 150
+        email:
+          type: string
+          format: email
+          title: Email address
+          maxLength: 254
+        first_name:
+          type: string
+          maxLength: 150
+        last_name:
+          type: string
+          maxLength: 150
+        department:
+          type: string
+          maxLength: 128
+        is_mfa_verified:
+          type: boolean
+        avatar_ipfs_cid:
+          type: string
+          maxLength: 128
+    PatchedChannelRequest:
+      type: object
+      properties:
+        workspace:
+          type: string
+          format: uuid
+        name:
+          type: string
+          minLength: 1
+          maxLength: 80
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 80
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        channel_type:
+          $ref: '#/components/schemas/ChannelTypeEnum'
+        is_archived:
+          type: boolean
+        is_read_only:
+          type: boolean
+        topic:
+          type: string
+          maxLength: 256
+        purpose:
+          type: string
+          maxLength: 512
+    PatchedEncryptedBlobRequest:
+      type: object
+      properties:
+        blob_type:
+          $ref: '#/components/schemas/BlobTypeEnum'
+        label:
+          type: string
+          minLength: 1
+          maxLength: 128
+        content_type:
+          type: string
+          minLength: 1
+          maxLength: 128
+        size_bytes:
+          type: integer
+          maximum: 9223372036854775807
+          minimum: 0
+          format: int64
+        min_clearance:
+          type: integer
+          maximum: 32767
+          minimum: 0
+        destroy_at:
+          type: string
+          format: date-time
+          nullable: true
+    PatchedExportRequestRequest:
+      type: object
+      properties:
+        export_type:
+          $ref: '#/components/schemas/ExportTypeEnum'
+        justification:
+          type: string
+          minLength: 1
+    PatchedWorkspaceRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        icon_ipfs_cid:
+          type: string
+          maxLength: 128
+        compliance_region:
+          $ref: '#/components/schemas/ComplianceRegionEnum'
+        retention_days:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          description: Message retention period
+        is_e2ee_enforced:
+          type: boolean
+        is_active:
+          type: boolean
+    Reaction:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        emoji_code:
+          type: string
+          description: 'Unicode or :custom_name:'
+          maxLength: 64
+        user:
+          type: string
+          format: uuid
+        username:
+          type: string
+          readOnly: true
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - emoji_code
+      - id
+      - user
+      - username
+    ReactionRequest:
+      type: object
+      properties:
+        emoji_code:
+          type: string
+          minLength: 1
+          description: 'Unicode or :custom_name:'
+          maxLength: 64
+        user:
+          type: string
+          format: uuid
+      required:
+      - emoji_code
+      - user
+    ReportTypeEnum:
+      enum:
+      - daily_audit
+      - user_activity
+      - vault_access
+      - message_retention
+      - security_incidents
+      - regulatory
+      type: string
+      description: |-
+        * `daily_audit` - Daily Audit Summary
+        * `user_activity` - User Activity Report
+        * `vault_access` - Vault Access Report
+        * `message_retention` - Message Retention Report
+        * `security_incidents` - Security Incidents Report
+        * `regulatory` - Regulatory Submission
+    SecurityEvent:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        event_type:
+          $ref: '#/components/schemas/EventTypeEnum'
+        user:
+          type: string
+          format: uuid
+          nullable: true
+        ip_address:
+          type: string
+          nullable: true
+        is_suspicious:
+          type: boolean
+        detail: {}
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - event_type
+      - id
+    SeverityEnum:
+      enum:
+      - info
+      - warning
+      - critical
+      - alert
+      type: string
+      description: |-
+        * `info` - Info
+        * `warning` - Warning
+        * `critical` - Critical
+        * `alert` - Security Alert
+    StorageBackendEnum:
+      enum:
+      - ipfs
+      - s3
+      - encrypted_blob
+      type: string
+      description: |-
+        * `ipfs` - IPFS
+        * `s3` - S3 Vault
+        * `encrypted_blob` - Encrypted Blob Store
+    ThemeEnum:
+      enum:
+      - dark
+      - light
+      type: string
+      description: |-
+        * `dark` - Dark
+        * `light` - Light
+    Thread:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        channel:
+          type: string
+          format: uuid
+        root_message:
+          allOf:
+          - $ref: '#/components/schemas/Message'
+          readOnly: true
+        reply_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        last_reply_at:
+          type: string
+          format: date-time
+          nullable: true
+        participant_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - channel
+      - created_at
+      - id
+      - root_message
+    ThreadRequest:
+      type: object
+      properties:
+        channel:
+          type: string
+          format: uuid
+        reply_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+        last_reply_at:
+          type: string
+          format: date-time
+          nullable: true
+        participant_count:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+      required:
+      - channel
+    TokenRefresh:
+      type: object
+      properties:
+        access:
+          type: string
+          readOnly: true
+        refresh:
+          type: string
+      required:
+      - access
+      - refresh
+    TokenRefreshRequest:
+      type: object
+      properties:
+        refresh:
+          type: string
+          minLength: 1
+      required:
+      - refresh
+    UserProfile:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 64
+        timezone:
+          type: string
+          maxLength: 64
+        locale:
+          type: string
+          maxLength: 16
+        notification_prefs: {}
+        theme:
+          $ref: '#/components/schemas/ThemeEnum'
+    UserProfileRequest:
+      type: object
+      properties:
+        title:
+          type: string
+          maxLength: 64
+        bio_encrypted:
+          type: string
+          writeOnly: true
+        timezone:
+          type: string
+          minLength: 1
+          maxLength: 64
+        locale:
+          type: string
+          minLength: 1
+          maxLength: 16
+        notification_prefs: {}
+        theme:
+          $ref: '#/components/schemas/ThemeEnum'
+    UserPublicKey:
+      type: object
+      properties:
+        id:
+          type: integer
+          readOnly: true
+        key_type:
+          $ref: '#/components/schemas/KeyTypeEnum'
+        public_key_b64:
+          type: string
+          description: Base64-encoded DER/raw key
+        fingerprint:
+          type: string
+          readOnly: true
+        is_current:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+      required:
+      - created_at
+      - fingerprint
+      - id
+      - key_type
+      - public_key_b64
+    UserPublicKeyRequest:
+      type: object
+      properties:
+        key_type:
+          $ref: '#/components/schemas/KeyTypeEnum'
+        public_key_b64:
+          type: string
+          minLength: 1
+          description: Base64-encoded DER/raw key
+        is_current:
+          type: boolean
+      required:
+      - key_type
+      - public_key_b64
+    Workspace:
+      type: object
+      properties:
+        id:
+          type: string
+          format: uuid
+          readOnly: true
+        name:
+          type: string
+          maxLength: 128
+        slug:
+          type: string
+          maxLength: 64
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        icon_ipfs_cid:
+          type: string
+          maxLength: 128
+        compliance_region:
+          $ref: '#/components/schemas/ComplianceRegionEnum'
+        retention_days:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          description: Message retention period
+        is_e2ee_enforced:
+          type: boolean
+        is_active:
+          type: boolean
+        created_at:
+          type: string
+          format: date-time
+          readOnly: true
+        member_count:
+          type: string
+          readOnly: true
+      required:
+      - created_at
+      - id
+      - member_count
+      - name
+      - slug
+    WorkspaceRequest:
+      type: object
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 128
+        slug:
+          type: string
+          minLength: 1
+          maxLength: 64
+          pattern: ^[-a-zA-Z0-9_]+$
+        description:
+          type: string
+        icon_ipfs_cid:
+          type: string
+          maxLength: 128
+        compliance_region:
+          $ref: '#/components/schemas/ComplianceRegionEnum'
+        retention_days:
+          type: integer
+          maximum: 2147483647
+          minimum: 0
+          description: Message retention period
+        is_e2ee_enforced:
+          type: boolean
+        is_active:
+          type: boolean
+      required:
+      - name
+      - slug
+  securitySchemes:
+    jwtAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT

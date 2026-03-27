@@ -1,9 +1,11 @@
 """
-core/wsgi.py — Standard WSGI fallback (used by gunicorn for HTTP-only workers)
+WSGI config for BlackMess project.
 """
 
 import os
+
 from django.core.wsgi import get_wsgi_application
 
-os.environ.setdefault("DJANGO_SETTINGS_MODULE", "core.settings")
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'core.settings')
+
 application = get_wsgi_application()

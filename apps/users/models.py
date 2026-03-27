@@ -24,6 +24,8 @@ from simple_history.models import HistoricalRecords
 
 
 class BankUser(AbstractUser):
+    groups = models.ManyToManyField("auth.Group", related_name="bankuser_groups_set", blank=True)
+    user_permissions = models.ManyToManyField("auth.Permission", related_name="bankuser_permissions_set", blank=True)
     """
     Primary user model. Extends Django AbstractUser with banking-grade fields.
     UUID primary key — no sequential ID exposure.
