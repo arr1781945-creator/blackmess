@@ -1,4 +1,3 @@
-"use client"
 
 export function HashIcon({ className }: { className?: string }) {
   return (

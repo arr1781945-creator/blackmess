@@ -1,4 +1,3 @@
-"use client"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useDropzone } from "react-dropzone"
 import { HashIcon, StarIcon, UsersIcon, MoreIcon, PaperclipIcon, SmileIcon, SendIcon, MicIcon, VideoIcon, PhoneIcon } from "./icons"

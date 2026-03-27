@@ -3,9 +3,9 @@ import * as OTPAuth from 'otpauth'
 import QRCode from 'react-qr-code'
 import { useState, useEffect } from 'react'
 
-const API_URL = 'http://localhost:8002/api/v1/auth'
+const API_URL = 'https://black-message-production.up.railway.app/api/v1/auth'
 
-type Step = 'login' | 'register' | 'verify-email' | 'totp-setup' | 'kyc' | 'usb' | 'auth' | 'done'
+type Step = 'login' | 'register' | 'verify-email' | 'totp-setup' | 'kyc' | 'usb' | 'auth' | 'usb-verify' | 'done'
 
 interface User {
   name: string
@@ -617,7 +617,46 @@ export function AuthFlow({ onComplete }: { onComplete: (user: User) => void }) {
       {step==='totp-setup' && user && <TOTPSetupStep user={user} onNext={() => setStep('kyc')}/>}
       {step==='kyc' && user && <KYCStep user={user} onNext={() => setStep('usb')}/>}
       {step==='usb' && user && <USBStep user={user} onComplete={onComplete}/>}
-      {step==='auth' && user && <AuthStep user={user} onNext={() => onComplete(user)}/>}
+      {step==='auth' && user && <AuthStep user={user} onNext={() => setStep('usb-verify')}/>}
+      {step==='usb-verify' && user && (
+        <div style={{ minHeight:'100vh', background:'#1a1a1a', display:'flex', alignItems:'center', justifyContent:'center', padding:16 }}>
+          <div style={{ width:'100%', maxWidth:400 }}>
+            <div style={{ textAlign:'center', marginBottom:32 }}>
+              <div style={{ width:64, height:64, borderRadius:16, background:'#262624', border:'1px solid #333', display:'flex', alignItems:'center', justifyContent:'center', margin:'0 auto 12px' }}>
+                <svg width="32" height="32" viewBox="0 0 48 48" fill="none">
+                  <circle cx="24" cy="6" r="3" fill="#fff"/>
+                  <circle cx="24" cy="42" r="3" fill="#fff"/>
+                  <circle cx="6" cy="24" r="3" fill="#fff"/>
+                  <circle cx="42" cy="24" r="3" fill="#fff"/>
+                  <circle cx="11" cy="11" r="2.5" fill="#fff" opacity="0.7"/>
+                  <circle cx="37" cy="11" r="2.5" fill="#fff" opacity="0.7"/>
+                  <circle cx="11" cy="37" r="2.5" fill="#fff" opacity="0.7"/>
+                  <circle cx="37" cy="37" r="2.5" fill="#fff" opacity="0.7"/>
+                </svg>
+              </div>
+              <h1 style={{ color:'#fff', fontSize:24, fontWeight:700, margin:0 }}>BlackMess</h1>
+              <p style={{ color:'#999', fontSize:13, marginTop:4 }}>Verifikasi USB Security Key</p>
+            </div>
+            <div style={{ background:'#262624', border:'1px solid #333', borderRadius:16, padding:28 }}>
+              <h2 style={{ color:'#fff', fontSize:18, fontWeight:700, marginBottom:6 }}>Verifikasi Perangkat</h2>
+              <p style={{ color:'#999', fontSize:13, marginBottom:20 }}>Sentuh sensor fingerprint atau face ID untuk masuk</p>
+              <button onClick={() => {
+                const challenge = new Uint8Array(32)
+                crypto.getRandomValues(challenge)
+                navigator.credentials.get({
+                  publicKey: { challenge, timeout:60000, userVerification:'required' }
+                }).then(() => onComplete(user!))
+                .catch(() => onComplete(user!))
+              }} style={{ width:'100%', padding:14, borderRadius:10, background:'#4A154B', color:'#fff', fontWeight:700, fontSize:14, border:'none', cursor:'pointer', marginBottom:10 }}>
+                Verifikasi dengan Security Key
+              </button>
+              <button onClick={() => onComplete(user!)} style={{ width:'100%', padding:14, borderRadius:10, background:'transparent', color:'#999', fontWeight:600, fontSize:14, border:'1px solid #333', cursor:'pointer' }}>
+                Lewati untuk sekarang
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }

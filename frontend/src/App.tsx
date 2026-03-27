@@ -434,7 +434,7 @@ const InvitePage = ({ user }: { user: User }) => {
     if (personal.includes(email.split('@')[1])) { setError('Gunakan email perusahaan!'); return }
     const link = `http://localhost:3003/invite?ref=${btoa(email)}&from=${btoa(user.email)}`
     try {
-      const res = await fetch('http://localhost:8002/api/v1/auth/invite/send/', {
+      const res = await fetch('https://black-message-production.up.railway.app/api/v1/auth/invite/send/', {
         method: 'POST',
         headers: {'Content-Type': 'application/json'},
         body: JSON.stringify({
@@ -512,7 +512,7 @@ const CompliancePage = ({ currentUser }: { currentUser: any }) => {
     const load = async () => {
       try {
         const token = localStorage.getItem('bm_token')
-        const res = await fetch('http://localhost:8002/api/v1/compliance/dashboard/?workspace_id=default', {
+        const res = await fetch('https://black-message-production.up.railway.app/api/v1/compliance/dashboard/?workspace_id=default', {
           headers: token ? { Authorization: `Bearer ${token}` } : {}
         })
         if (res.ok) {
@@ -663,15 +663,15 @@ const CompliancePage = ({ currentUser }: { currentUser: any }) => {
           <h3 className="text-foreground font-semibold text-sm mb-3">Export for Audit OJK/BI</h3>
           <p className="text-muted-foreground text-xs mb-3">Download riwayat komunikasi untuk keperluan audit regulasi</p>
           <div className="grid grid-cols-3 gap-2">
-            <a href="http://localhost:8002/api/v1/compliance/export/pdf/?days=30"
+            <a href="https://black-message-production.up.railway.app/api/v1/compliance/export/pdf/?days=30"
               className="py-2.5 rounded-xl bg-red-500/10 border border-red-500/30 text-red-400 text-xs font-medium text-center hover:bg-red-500/20 transition-colors">
               PDF
             </a>
-            <a href="http://localhost:8002/api/v1/compliance/export/excel/?days=30"
+            <a href="https://black-message-production.up.railway.app/api/v1/compliance/export/excel/?days=30"
               className="py-2.5 rounded-xl bg-green-500/10 border border-green-500/30 text-green-400 text-xs font-medium text-center hover:bg-green-500/20 transition-colors">
               Excel
             </a>
-            <a href="http://localhost:8002/api/v1/compliance/export/json/?days=30"
+            <a href="https://black-message-production.up.railway.app/api/v1/compliance/export/json/?days=30"
               className="py-2.5 rounded-xl bg-accent/10 border border-blue-500/30 text-blue-400 text-xs font-medium text-center hover:bg-accent/20 transition-colors">
               JSON
             </a>
@@ -1881,6 +1881,7 @@ export default function App() {
   }
 
   const renderContent = () => {
+    try {
     if (subPage === 'profile') return <ProfilePage user={user} onLogout={() => setUser(null)} onBack={() => setSubPage('')} />
     if (subPage === 'vault') return <VaultPage />
     if (subPage === 'settings') { setSubPage('profile'); return null }
@@ -1902,6 +1903,15 @@ export default function App() {
       case 'apps': return <AppsPage />
       case 'more': return <MorePage onNav={handleNav} />
       default: return <><ChannelSidebar onChannelChange={ch => setActiveChannel(ch)} /><ChatArea key={activeChannel} channel={activeChannel} currentUser={user} onVideoCall={() => setShowVideoCall(true)} onProfile={() => setSubPage("profile")} /></>
+    }
+    } catch(e: any) {
+      return <div style={{color:'white',padding:20,background:'#1a1a1a',minHeight:'100vh'}}>
+        <h2>Error: {e?.message}</h2>
+        <button onClick={() => { localStorage.clear(); window.location.reload() }} 
+          style={{padding:'10px 20px',background:'#4A154B',color:'white',border:'none',borderRadius:8,cursor:'pointer',marginTop:16}}>
+          Reset & Login Ulang
+        </button>
+      </div>
     }
   }
 
