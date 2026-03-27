@@ -20,3 +20,7 @@ pyotp
 qrcode
 pillow
 python-dotenv
+drf-spectacular
+djangorestframework-simplejwt
+django-filter
+redis
