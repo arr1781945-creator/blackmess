@@ -1,13 +1,13 @@
 import os
 from sendgrid import SendGridAPIClient
-from sendgrid.helpers.mail import Mail
+from sendgrid.helpers.mail import Mail, Header
 
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'chudorifirman@gmail.com')
 
 def send_otp_email(to_email: str, otp: str, name: str = '') -> bool:
     message = Mail(
-        from_email=FROM_EMAIL,
+        from_email=(FROM_EMAIL, 'BlackMess'),
         to_emails=to_email,
         subject='Kode Verifikasi BlackMess',
         html_content=f'''
@@ -38,7 +38,7 @@ def send_otp_email(to_email: str, otp: str, name: str = '') -> bool:
 
 def send_invite_email(to_email: str, from_name: str, invite_link: str, workspace: str = 'BlackMess') -> bool:
     message = Mail(
-        from_email=FROM_EMAIL,
+        from_email=(FROM_EMAIL, 'BlackMess'),
         to_emails=to_email,
         subject=f'{from_name} mengundang kamu ke {workspace}',
         html_content=f'''
