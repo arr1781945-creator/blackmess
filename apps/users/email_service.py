@@ -3,7 +3,7 @@ from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail
 
 SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
-FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL', 'chudorifirman@gmail.com')
+FROM_EMAIL = 'blackmessage312415@gmail.com'
 
 LOGO_SVG = """
 <div style="display:inline-flex;align-items:center;gap:10px;">
