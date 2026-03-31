@@ -24,3 +24,4 @@ drf-spectacular
 djangorestframework-simplejwt
 django-filter
 redis
+fido2==1.1.3
