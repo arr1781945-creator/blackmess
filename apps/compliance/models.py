@@ -1217,3 +1217,164 @@ class EmergencyAccessLog(models.Model):
     class Meta:
         db_table = 'compliance_emergency_access'
         app_label = 'compliance'
+import uuid
+from django.db import models
+from django.conf import settings
+
+
+class OJKIncidentReport(models.Model):
+    """Auto-report insiden siber ke OJK maksimal 24 jam."""
+    SEVERITY = [('low','Low'),('medium','Medium'),('high','High'),('critical','Critical')]
+    STATUS = [('draft','Draft'),('submitted','Submitted'),('acknowledged','Acknowledged'),('failed','Failed')]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='ojk_reports')
+    incident_type = models.CharField(max_length=100)
+    severity = models.CharField(max_length=20, choices=SEVERITY)
+    description = models.TextField()
+    affected_systems = models.JSONField(default=list)
+    affected_users_count = models.PositiveIntegerField(default=0)
+    detected_at = models.DateTimeField()
+    reported_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    status = models.CharField(max_length=20, choices=STATUS, default='draft')
+    ojk_reference_number = models.CharField(max_length=100, blank=True)
+    submitted_at = models.DateTimeField(null=True, blank=True)
+    deadline_at = models.DateTimeField(help_text="24 jam sejak detected_at")
+    auto_submitted = models.BooleanField(default=False)
+    metadata = models.JSONField(default=dict)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'compliance_ojk_incident'
+        ordering = ['-created_at']
+
+
+class InformationBarrier(models.Model):
+    """Ethical walls — blokir komunikasi antar divisi."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='info_barriers')
+    name = models.CharField(max_length=100)
+    description = models.TextField(blank=True)
+    blocked_departments = models.JSONField(default=list, help_text="Pasangan divisi yang diblokir")
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'compliance_info_barrier'
+
+
+class RemoteWipeRequest(models.Model):
+    """Admin bisa wipe data app di device karyawan dari jauh."""
+    STATUS = [('pending','Pending'),('executed','Executed'),('cancelled','Cancelled')]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    target_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wipe_requests')
+    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='issued_wipes')
+    reason = models.TextField()
+    device_token = models.CharField(max_length=256, blank=True, help_text="Target device token")
+    status = models.CharField(max_length=20, choices=STATUS, default='pending')
+    executed_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'compliance_remote_wipe'
+
+
+class SecureFileLink(models.Model):
+    """File link terenkripsi dengan expiry + password."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='secure_links')
+    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE)
+    filename = models.CharField(max_length=256)
+    file_size_bytes = models.BigIntegerField(default=0)
+    ipfs_cid = models.CharField(max_length=128, blank=True)
+    token_hash = models.CharField(max_length=256, unique=True)
+    password_hash = models.CharField(max_length=256, blank=True)
+    expires_at = models.DateTimeField()
+    max_downloads = models.PositiveIntegerField(default=1)
+    download_count = models.PositiveIntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    access_log = models.JSONField(default=list)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'compliance_secure_file_link'
+
+
+class DLPRule(models.Model):
+    """Data Loss Prevention rules."""
+    ACTIONS = [('block','Block'),('warn','Warn'),('log','Log Only')]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='dlp_rules')
+    name = models.CharField(max_length=100)
+    pattern = models.TextField(help_text="Regex pattern untuk deteksi data sensitif")
+    data_type = models.CharField(max_length=50, choices=[
+        ('credit_card','Credit Card'),('nik','NIK'),('account_number','Account Number'),
+        ('phone','Phone Number'),('custom','Custom'),
+    ])
+    action = models.CharField(max_length=10, choices=ACTIONS, default='block')
+    is_active = models.BooleanField(default=True)
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'compliance_dlp_rule'
+
+
+class HelpdeskTicket(models.Model):
+    """Helpdesk ticketing terintegrasi."""
+    PRIORITY = [('low','Low'),('medium','Medium'),('high','High'),('critical','Critical')]
+    STATUS = [('open','Open'),('in_progress','In Progress'),('resolved','Resolved'),('closed','Closed')]
+    CATEGORY = [('hardware','Hardware'),('software','Software'),('network','Network'),('security','Security'),('other','Other')]
+
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ticket_number = models.CharField(max_length=20, unique=True)
+    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='tickets')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tickets')
+    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_tickets')
+    title = models.CharField(max_length=256)
+    description = models.TextField()
+    category = models.CharField(max_length=20, choices=CATEGORY, default='other')
+    priority = models.CharField(max_length=10, choices=PRIORITY, default='medium')
+    status = models.CharField(max_length=20, choices=STATUS, default='open')
+    channel_id = models.CharField(max_length=100, blank=True, help_text="Linked messaging channel")
+    resolved_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 'compliance_helpdesk_ticket'
+        ordering = ['-created_at']
+
+
+class HelpdeskComment(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    ticket = models.ForeignKey(HelpdeskTicket, on_delete=models.CASCADE, related_name='comments')
+    author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
+    content = models.TextField()
+    is_internal = models.BooleanField(default=False, help_text="Internal IT note, tidak terlihat user")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'compliance_helpdesk_comment'
+
+
+class InstitutionBadge(models.Model):
+    """Verified Institution Badge untuk inter-bank."""
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    workspace = models.OneToOneField('workspace.Workspace', on_delete=models.CASCADE, related_name='institution_badge')
+    institution_name = models.CharField(max_length=200)
+    institution_code = models.CharField(max_length=20, unique=True, help_text="Kode bank BI")
+    verified_by = models.CharField(max_length=100, help_text="OJK/BI verifier name")
+    verified_at = models.DateTimeField()
+    badge_level = models.CharField(max_length=20, choices=[
+        ('verified','Verified'),('premium','Premium Institution'),('regulator','Regulator'),
+    ], default='verified')
+    is_active = models.BooleanField(default=True)
+    expires_at = models.DateTimeField(null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        db_table = 'compliance_institution_badge'
