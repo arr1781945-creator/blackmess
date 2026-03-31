@@ -5,7 +5,7 @@
     "dockerfilePath": "Dockerfile"
   },
   "deploy": {
-    "startCommand": "sh -c 'python manage.py migrate --no-input && gunicorn core.wsgi:application --bind 0.0.0.0:${PORT:-8000} --workers 2'",
+    "startCommand": "python manage.py migrate --no-input && daphne -b 0.0.0.0 -p ${PORT:-8000} core.asgi:application",
     "healthcheckPath": "/api/v1/health/",
     "healthcheckTimeout": 300,
     "restartPolicyType": "ON_FAILURE"
