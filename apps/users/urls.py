@@ -1,6 +1,10 @@
 from django.urls import path
 from .otp_views import send_otp, verify_otp, send_invite, generate_totp_secret, verify_totp_setup
 from rest_framework_simplejwt.views import TokenRefreshView
+from .webauthn_views import (
+    WebAuthnRegisterBeginView, WebAuthnRegisterCompleteView,
+    WebAuthnAuthBeginView, WebAuthnAuthCompleteView,
+)
 from .views import (
     LoginView, LogoutView, RegisterView,
     MeProfileView, ChangePasswordView,
