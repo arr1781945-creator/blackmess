@@ -224,3 +224,11 @@ SOCIAL_AUTH_PIPELINE = (
 )
 VAULT_SESSION_TTL_SECONDS = 900
 FIDO2_RP_ID = os.environ.get('WEBAUTHN_RP_ID', 'black-message-production.up.railway.app')
+
+# ── Django Channels (In-Memory, single worker) ─────────────────────────────────
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels.layers.InMemoryChannelLayer",
+    },
+}
+ASGI_APPLICATION = "core.asgi.application"
