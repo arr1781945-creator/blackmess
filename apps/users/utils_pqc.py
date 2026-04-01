@@ -27,7 +27,7 @@ def _require_oqs():
 
 def generate_kyber_keypair() -> tuple[str, str]:
     _require_oqs()
-    with oqs.KeyEncapsulation("Kyber1024") as kem:
+    with oqs.KeyEncapsulation("ML-KEM-1024") as kem:
         pk = kem.generate_keypair()
         sk = kem.export_secret_key()
     return base64.b64encode(pk).decode(), base64.b64encode(sk).decode()
@@ -36,7 +36,7 @@ def generate_kyber_keypair() -> tuple[str, str]:
 def kyber_encapsulate(pk_b64: str) -> tuple[str, bytes]:
     _require_oqs()
     pk = base64.b64decode(pk_b64)
-    with oqs.KeyEncapsulation("Kyber1024") as kem:
+    with oqs.KeyEncapsulation("ML-KEM-1024") as kem:
         ct, ss = kem.encap_secret(pk)
     return base64.b64encode(ct).decode(), ss
 
@@ -45,7 +45,7 @@ def kyber_decapsulate(sk_b64: str, ct_b64: str) -> bytes:
     _require_oqs()
     sk = base64.b64decode(sk_b64)
     ct = base64.b64decode(ct_b64)
-    with oqs.KeyEncapsulation("Kyber1024", sk) as kem:
+    with oqs.KeyEncapsulation("ML-KEM-1024", sk) as kem:
         return kem.decap_secret(ct)
 
 

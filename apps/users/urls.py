@@ -7,6 +7,9 @@ from .views import (
     SessionListView, PublicKeyView,
     MFASetupView, MFAVerifyView,
 )
+from .pq_mfa import (
+    PQMFARegisterView, PQMFAChallengeView, PQMFAVerifyView,
+)
 from .webauthn_views import (
     WebAuthnRegisterBeginView, WebAuthnRegisterCompleteView,
     WebAuthnAuthBeginView, WebAuthnAuthCompleteView,
@@ -37,6 +40,9 @@ urlpatterns = [
     path('webauthn/register/complete/', WebAuthnRegisterCompleteView.as_view(), name='webauthn-register-complete'),
     path('webauthn/auth/begin/', WebAuthnAuthBeginView.as_view(), name='webauthn-auth-begin'),
     path('webauthn/auth/complete/', WebAuthnAuthCompleteView.as_view(), name='webauthn-auth-complete'),
+    path('pq/register/', PQMFARegisterView.as_view(), name='pq-register'),
+    path('pq/challenge/', PQMFAChallengeView.as_view(), name='pq-challenge'),
+    path('pq/verify/', PQMFAVerifyView.as_view(), name='pq-verify'),
     path('settings/', SettingsView.as_view(), name='settings'),
     path('settings/notifications/', NotificationSettingsView.as_view(), name='settings-notif'),
     path('settings/appearance/', AppearanceSettingsView.as_view(), name='settings-appearance'),
