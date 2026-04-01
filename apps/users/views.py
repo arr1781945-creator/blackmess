@@ -17,7 +17,8 @@ class LoginView(APIView):
     def post(self, request):
         username = request.data.get('username')
         password = request.data.get('password')
-        user = authenticate(request, username=username, password=password)
+        from django.contrib.auth.backends import ModelBackend
+        user = ModelBackend().authenticate(request, username=username, password=password)
         if not user:
             return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
         if not user.is_active:
