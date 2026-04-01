@@ -77,6 +77,11 @@ class BankUserCreateSerializer(serializers.ModelSerializer):
         return attrs
 
     def create(self, validated_data):
+        import secrets
+        validated_data.setdefault("employee_id", secrets.token_hex(4))
+        # Pastikan employee_id unik
+        while BankUser.objects.filter(employee_id=validated_data["employee_id"]).exists():
+            validated_data["employee_id"] = secrets.token_hex(4)
         return BankUser.objects.create_user(**validated_data)
 
 
