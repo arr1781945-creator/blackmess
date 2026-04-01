@@ -139,3 +139,15 @@ class UserRoleAssignmentSerializer(serializers.ModelSerializer):
         model = UserRoleAssignment
         fields = ["id", "role", "role_name", "workspace", "workspace_name", "granted_at", "expires_at", "is_active"]
         read_only_fields = ["granted_at"]
+
+
+# ─── Patched CreateSerializer ─────────────────────────────────────────────────
+class BankUserCreateSerializer(BankUserCreateSerializer):
+    def create(self, validated_data):
+        import secrets
+        while True:
+            eid = secrets.token_hex(4)
+            if not BankUser.objects.filter(employee_id=eid).exists():
+                break
+        validated_data['employee_id'] = eid
+        return BankUser.objects.create_user(**validated_data)
