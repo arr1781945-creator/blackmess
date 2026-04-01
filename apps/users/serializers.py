@@ -1,12 +1,7 @@
-"""
-apps/users/serializers.py
-DRF serializers for auth, user management, MFA, and key exchange.
-"""
-
+import secrets
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-
 from .models import (
     BankUser, UserProfile, UserRole, UserRoleAssignment,
     MFADevice, LoginSession, DeviceFingerprint, APIKey, UserPublicKey
@@ -14,8 +9,6 @@ from .models import (
 
 
 class BankTokenObtainPairSerializer(TokenObtainPairSerializer):
-    """Augment JWT with clearance level and MFA status."""
-
     @classmethod
     def get_token(cls, user):
         token = super().get_token(user)
@@ -26,17 +19,6 @@ class BankTokenObtainPairSerializer(TokenObtainPairSerializer):
             user.role_assignments.filter(is_active=True).values_list("role__name", flat=True)
         )
         return token
-
-    def validate(self, attrs):
-        data = super().validate(attrs)
-        user = self.user
-        # Enforce MFA before issuing full access token
-        if user.is_mfa_enforced and not user.is_mfa_verified:
-            data["mfa_required"] = True
-            data["mfa_methods"] = list(
-                user.mfa_devices.filter(is_confirmed=True).values_list("device_type", flat=True)
-            )
-        return data
 
 
 class UserProfileSerializer(serializers.ModelSerializer):
@@ -69,19 +51,20 @@ class BankUserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BankUser
-        fields = ["username", "email", "employee_id", "first_name", "last_name", "department", "password", "password_confirm"]
+        fields = ["username", "email", "first_name", "last_name", "department", "password", "password_confirm"]
 
     def validate(self, attrs):
         if attrs["password"] != attrs.pop("password_confirm"):
-            raise serializers.ValidationError('Passwords do not match.')  # nosec
+            raise serializers.ValidationError('Passwords do not match.')
         return attrs
 
     def create(self, validated_data):
-        import secrets
-        validated_data.setdefault("employee_id", secrets.token_hex(4))
-        # Pastikan employee_id unik
-        while BankUser.objects.filter(employee_id=validated_data["employee_id"]).exists():
-            validated_data["employee_id"] = secrets.token_hex(4)
+        # Auto-generate unique employee_id
+        for _ in range(10):
+            eid = secrets.token_hex(4)
+            if not BankUser.objects.filter(employee_id=eid).exists():
+                break
+        validated_data['employee_id'] = eid
         return BankUser.objects.create_user(**validated_data)
 
 
@@ -111,7 +94,6 @@ class UserPublicKeySerializer(serializers.ModelSerializer):
 
 
 class APIKeyCreateSerializer(serializers.ModelSerializer):
-    """Return the raw key ONCE on creation — never again."""
     raw_key = serializers.CharField(read_only=True)
 
     class Meta:
@@ -127,7 +109,7 @@ class PasswordChangeSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         if attrs["new_password"] != attrs["new_password_confirm"]:
-            raise serializers.ValidationError('Passwords do not match.')  # nosec
+            raise serializers.ValidationError('Passwords do not match.')
         return attrs
 
 
@@ -139,15 +121,3 @@ class UserRoleAssignmentSerializer(serializers.ModelSerializer):
         model = UserRoleAssignment
         fields = ["id", "role", "role_name", "workspace", "workspace_name", "granted_at", "expires_at", "is_active"]
         read_only_fields = ["granted_at"]
-
-
-# ─── Patched CreateSerializer ─────────────────────────────────────────────────
-class BankUserCreateSerializer(BankUserCreateSerializer):
-    def create(self, validated_data):
-        import secrets
-        while True:
-            eid = secrets.token_hex(4)
-            if not BankUser.objects.filter(employee_id=eid).exists():
-                break
-        validated_data['employee_id'] = eid
-        return BankUser.objects.create_user(**validated_data)

@@ -1,12 +1,11 @@
-import uuid
 import secrets
 from rest_framework import generics, permissions, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth.backends import ModelBackend
-from .models import BankUser, LoginSession, UserPublicKey
-from .serializers import BankUserSerializer as UserSerializer, BankUserCreateSerializer, UserPublicKeySerializer as PublicKeySerializer, UserProfileSerializer
+from .models import BankUser, LoginSession, UserPublicKey, UserProfile
+from .serializers import BankUserSerializer as UserSerializer, BankUserCreateSerializer, UserPublicKeySerializer as PublicKeySerializer
 import logging
 
 logger = logging.getLogger(__name__)
@@ -20,22 +19,27 @@ class LoginView(APIView):
         password = request.data.get('password')
         user = ModelBackend().authenticate(request, username=username, password=password)
         if not user:
-            return Response({'detail': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'detail': 'Invalid credentials'}, status=401)
         if not user.is_active:
-            return Response({'detail': 'Account disabled'}, status=status.HTTP_403_FORBIDDEN)
+            return Response({'detail': 'Account disabled'}, status=403)
         refresh = RefreshToken.for_user(user)
         refresh['employee_id'] = str(user.employee_id or '')
         refresh['clearance'] = user.clearance_level
         refresh['mfa_verified'] = False
+        # Generate unique jti
+        for _ in range(10):
+            jti = secrets.token_hex(16)
+            if not LoginSession.objects.filter(refresh_jti=jti).exists():
+                break
         try:
             LoginSession.objects.create(
                 user=user,
                 ip_address=request.META.get('REMOTE_ADDR', '127.0.0.1'),
                 user_agent=request.META.get('HTTP_USER_AGENT', '')[:512],
-                refresh_jti=secrets.token_hex(16),
+                refresh_jti=jti,
             )
         except Exception as e:
-            logger.warning(f"LoginSession create failed: {e}")
+            logger.warning(f"LoginSession error: {e}")
         return Response({
             'access': str(refresh.access_token),
             'refresh': str(refresh),
@@ -49,10 +53,8 @@ class LogoutView(APIView):
 
     def post(self, request):
         try:
-            refresh_token = request.data.get('refresh')
-            if refresh_token:
-                token = RefreshToken(refresh_token)
-                token.blacklist()
+            token = RefreshToken(request.data.get('refresh'))
+            token.blacklist()
         except Exception:
             pass
         return Response({'detail': 'Logged out.'})
@@ -71,34 +73,26 @@ class RegisterView(generics.CreateAPIView):
             'access': str(refresh.access_token),
             'refresh': str(refresh),
             'user': UserSerializer(user).data,
-        }, status=status.HTTP_201_CREATED)
+        }, status=201)
 
 
-class MeProfileView(generics.RetrieveUpdateAPIView):
+class MeProfileView(APIView):
     permission_classes = [permissions.IsAuthenticated]
-    serializer_class = UserSerializer
 
-    def get_object(self):
-        return self.request.user
+    def get(self, request):
+        return Response(UserSerializer(request.user).data)
 
-    def update(self, request, *args, **kwargs):
+    def patch(self, request):
         user = request.user
-        user_data = {k: v for k, v in request.data.items()
-                     if k in ['first_name', 'last_name', 'department', 'avatar_ipfs_cid']}
-        if user_data:
-            for k, v in user_data.items():
-                setattr(user, k, v)
-            user.save(update_fields=list(user_data.keys()))
-
-        profile_data = {k: v for k, v in request.data.items()
-                        if k in ['title', 'bio_encrypted', 'timezone', 'locale', 'notification_prefs', 'theme']}
-        if profile_data:
-            from .models import UserProfile
-            profile, _ = UserProfile.objects.get_or_create(user=user)
-            for k, v in profile_data.items():
-                setattr(profile, k, v)
-            profile.save(update_fields=list(profile_data.keys()))
-
+        for field in ['first_name', 'last_name', 'department', 'avatar_ipfs_cid']:
+            if field in request.data:
+                setattr(user, field, request.data[field])
+        user.save()
+        profile, _ = UserProfile.objects.get_or_create(user=user)
+        for field in ['title', 'bio_encrypted', 'timezone', 'locale', 'notification_prefs', 'theme']:
+            if field in request.data:
+                setattr(profile, field, request.data[field])
+        profile.save()
         return Response(UserSerializer(user).data)
 
 
@@ -107,16 +101,14 @@ class ChangePasswordView(APIView):
 
     def post(self, request):
         user = request.user
-        old_password = request.data.get('old_password')
-        new_password = request.data.get('new_password')
-        if not user.check_password(old_password):
+        if not user.check_password(request.data.get('old_password', '')):
             return Response({'detail': 'Wrong password'}, status=400)
-        user.set_password(new_password)
+        user.set_password(request.data.get('new_password', ''))
         user.save()
         return Response({'detail': 'Password changed'})
 
 
-class SessionListView(generics.ListAPIView):
+class SessionListView(APIView):
     permission_classes = [permissions.IsAuthenticated]
 
     def get(self, request):
