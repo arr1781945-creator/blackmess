@@ -27,10 +27,12 @@ class LoginView(APIView):
         refresh['employee_id'] = str(user.employee_id or '')
         refresh['clearance'] = user.clearance_level
         refresh['mfa_verified'] = False
+        import secrets
         LoginSession.objects.create(
             user=user,
             ip_address=request.META.get('REMOTE_ADDR', ''),
             user_agent=request.META.get('HTTP_USER_AGENT', ''),
+            refresh_jti=secrets.token_hex(16),
         )
         return Response({
             'access': str(refresh.access_token),
