@@ -247,11 +247,15 @@ REST_FRAMEWORK = {
 }
 
 # drf-spectacular
+
+
 SPECTACULAR_SETTINGS = {
     'TITLE': 'BlackMess API',
-    'DESCRIPTION': 'Enterprise Secure Messaging Platform',
+    'DESCRIPTION': 'BlackMess — Enterprise Secure Messaging Platform with E2EE, PQC & OJK Compliance',
     'VERSION': '2.0.0',
     'SERVE_INCLUDE_SCHEMA': False,
+    'SWAGGER_UI_SETTINGS': {
+        'deepLinking': True,
+        'persistAuthorization': True,
+    },
 }
-
-# Sidecar static
