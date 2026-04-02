@@ -1,24 +1,9 @@
 from django.urls import path
 from .otp_views import send_otp, verify_otp, send_invite, generate_totp_secret, verify_totp_setup
 from rest_framework_simplejwt.views import TokenRefreshView
-from .views import (
-    LoginView, LogoutView, RegisterView,
-    MeProfileView, ChangePasswordView,
-    SessionListView, PublicKeyView,
-    MFASetupView, MFAVerifyView,
-)
-from .pq_mfa import (
-    PQMFARegisterView, PQMFAChallengeView, PQMFAVerifyView,
-)
-from .webauthn_views import (
-    WebAuthnRegisterBeginView, WebAuthnRegisterCompleteView,
-    WebAuthnAuthBeginView, WebAuthnAuthCompleteView,
-)
-from .settings_views import (
-    SettingsView, NotificationSettingsView, AppearanceSettingsView,
-    SecuritySettingsView, RevokeSessionView, RemoveMFADeviceView,
-    APIKeySettingsView, PrivacySettingsView,
-)
+from .views import LoginView, LogoutView, RegisterView, MeProfileView, ChangePasswordView, SessionListView, PublicKeyView, MFASetupView, MFAVerifyView
+from .webauthn_views import WebAuthnRegisterBeginView, WebAuthnRegisterCompleteView, WebAuthnAuthBeginView, WebAuthnAuthCompleteView
+from .settings_views import SettingsView, NotificationSettingsView, AppearanceSettingsView, SecuritySettingsView, RevokeSessionView, RemoveMFADeviceView, APIKeySettingsView, PrivacySettingsView
 
 urlpatterns = [
     path('otp/send/', send_otp, name='send-otp'),
@@ -40,9 +25,6 @@ urlpatterns = [
     path('webauthn/register/complete/', WebAuthnRegisterCompleteView.as_view(), name='webauthn-register-complete'),
     path('webauthn/auth/begin/', WebAuthnAuthBeginView.as_view(), name='webauthn-auth-begin'),
     path('webauthn/auth/complete/', WebAuthnAuthCompleteView.as_view(), name='webauthn-auth-complete'),
-    path('pq/register/', PQMFARegisterView.as_view(), name='pq-register'),
-    path('pq/challenge/', PQMFAChallengeView.as_view(), name='pq-challenge'),
-    path('pq/verify/', PQMFAVerifyView.as_view(), name='pq-verify'),
     path('settings/', SettingsView.as_view(), name='settings'),
     path('settings/notifications/', NotificationSettingsView.as_view(), name='settings-notif'),
     path('settings/appearance/', AppearanceSettingsView.as_view(), name='settings-appearance'),
