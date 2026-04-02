@@ -22,6 +22,7 @@ RUN git clone --depth 1 https://github.com/open-quantum-safe/liboqs.git /tmp/lib
     && pip install liboqs-python \
     && rm -rf /tmp/liboqs
 
+ARG CACHE_BUST=1
 COPY . .
 
 RUN python manage.py collectstatic --noinput || true
