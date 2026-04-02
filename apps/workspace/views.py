@@ -72,7 +72,7 @@ class WorkspaceViewSet(viewsets.ModelViewSet):
         return Response(UserPresenceSerializer(presences, many=True).data)
 
     @action(detail=True, methods=["patch"], permission_classes=[IsAuthenticated, IsWorkspaceAdmin])
-    def settings(self, request, slug=None):
+    def workspace_settings(self, request, slug=None):
         workspace = self.get_object()
         instance, _ = WorkspaceSettings.objects.get_or_create(workspace=workspace)
         serializer = WorkspaceSettingsSerializer(instance, data=request.data, partial=True)
