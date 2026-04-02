@@ -20,11 +20,9 @@ pyotp
 qrcode
 pillow
 python-dotenv
-drf-spectacular
-djangorestframework-simplejwt
+drf-spectacular==0.29.0
 django-filter
 redis
 fido2==1.1.3
 daphne==4.1.2
-drf-spectacular==0.29.0
 drf-spectacular-sidecar==2026.4.1
