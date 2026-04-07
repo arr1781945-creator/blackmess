@@ -467,7 +467,7 @@ const InvitePage = ({ user }: { user: User }) => {
           <h3 className="text-foreground font-semibold text-sm mb-3">Kirim undangan</h3>
           {error && <div className="bg-red-500/10 border border-red-500/30 rounded-lg p-2 text-red-400 text-xs mb-3">{error}</div>}
           <div className="flex gap-2">
-            <input type="email" value={email} onChange={e => { setEmail(e.target.value); setVaultError('') }}
+            <input type="email" value={email} onChange={e => { setEmail(e.target.value); setError('') }}
               onKeyDown={e => e.key==='Enter' && handleInvite()}
               placeholder="nama@gmail.com atau nama@perusahaan.com"
               className="flex-1 px-3 py-2.5 rounded-lg bg-background border border-border text-foreground text-sm outline-none focus:border-white"/>
