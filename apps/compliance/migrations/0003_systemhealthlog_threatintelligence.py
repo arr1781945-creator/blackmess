@@ -7,39 +7,39 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('compliance', '0002_initial'),
+        (r'compliance', '0002_initial'),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='SystemHealthLog',
+            name=r'SystemHealthLog',
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('service', models.CharField(max_length=50)),
-                ('status', models.CharField(choices=[('healthy', 'Healthy'), ('degraded', 'Degraded'), ('down', 'Down')], max_length=20)),
-                ('response_time_ms', models.PositiveIntegerField(default=0)),
-                ('details', models.JSONField(default=dict)),
-                ('checked_at', models.DateTimeField(auto_now_add=True)),
+                (r'id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (r'service', models.CharField(max_length=50)),
+                (r'status', models.CharField(choices=[('healthy', 'Healthy'), ('degraded', 'Degraded'), ('down', 'Down')], max_length=20)),
+                (r'response_time_ms', models.PositiveIntegerField(default=0)),
+                (r'details', models.JSONField(default=dict)),
+                (r'checked_at', models.DateTimeField(auto_now_add=True)),
             ],
             options={
-                'db_table': 'compliance_system_health',
+                r'db_table': 'compliance_system_health',
             },
         ),
         migrations.CreateModel(
-            name='ThreatIntelligence',
+            name=r'ThreatIntelligence',
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('threat_type', models.CharField(max_length=50)),
-                ('indicator', models.CharField(max_length=255)),
-                ('severity', models.CharField(choices=[('low', 'Low'), ('medium', 'Medium'), ('high', 'High'), ('critical', 'Critical')], max_length=20)),
-                ('description', models.TextField(blank=True)),
-                ('is_active', models.BooleanField(default=True)),
-                ('source', models.CharField(blank=True, max_length=100)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('expires_at', models.DateTimeField(blank=True, null=True)),
+                (r'id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (r'threat_type', models.CharField(max_length=50)),
+                (r'indicator', models.CharField(max_length=255)),
+                (r'severity', models.CharField(choices=[('low', 'Low'), ('medium', 'Medium'), ('high', 'High'), ('critical', 'Critical')], max_length=20)),
+                (r'description', models.TextField(blank=True)),
+                (r'is_active', models.BooleanField(default=True)),
+                (r'source', models.CharField(blank=True, max_length=100)),
+                (r'created_at', models.DateTimeField(auto_now_add=True)),
+                (r'expires_at', models.DateTimeField(blank=True, null=True)),
             ],
             options={
-                'db_table': 'compliance_threat_intel',
+                r'db_table': 'compliance_threat_intel',
             },
         ),
     ]

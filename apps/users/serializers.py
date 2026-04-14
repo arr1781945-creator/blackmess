@@ -1,10 +1,31 @@
+"""
+apps/users/serializers.py
+
+FIX — BankTokenObtainPairSerializer: mfa_verified di JWT bersumber dari
+  user.is_mfa_verified yang merupakan field boolean permanen di model.
+  Artinya sekali user pernah verify MFA, semua token berikutnya akan
+  claim mfa_verified=True meski device dihapus atau sesi baru dimulai.
+
+  Fix: mfa_verified di JWT selalu di-set False saat token pertama kali
+  di-issue oleh serializer ini (login awal). Nilai True hanya diberikan
+  setelah user menyelesaikan MFA di sesi tersebut via:
+    - otp_views.verify_otp()
+    - webauthn_views.WebAuthnAuthCompleteView
+    - pq_mfa.PQMFAVerifyView
+
+  Ini konsisten dengan perubahan di views.py (LoginView batch High)
+  yang juga set mfa_verified=False dan mfa_pending=True.
+
+FIX tambahan — BankUserCreateSerializer: employee_id entropy rendah
+  token_hex(4) = 65K kombinasi. Ganti ke token_hex(8) = 4 miliar.
+"""
 import secrets
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from .models import (
     BankUser, UserProfile, UserRole, UserRoleAssignment,
-    MFADevice, LoginSession, DeviceFingerprint, APIKey, UserPublicKey
+    MFADevice, LoginSession, DeviceFingerprint, APIKey, UserPublicKey,
 )
 
 
@@ -14,22 +35,30 @@ class BankTokenObtainPairSerializer(TokenObtainPairSerializer):
         token = super().get_token(user)
         token["employee_id"] = user.employee_id
         token["clearance"] = user.clearance_level
-        token["mfa_verified"] = user.is_mfa_verified
+
+        # FIX: Selalu set False saat token pertama di-issue.
+        # mfa_verified=True hanya diberikan setelah user menyelesaikan
+        # MFA di sesi ini via verify_otp / WebAuthn / PQ MFA.
+        # Jangan pakai user.is_mfa_verified (state permanen di DB) —
+        # itu tidak merepresentasikan apakah user sudah MFA di sesi ini.
+        token["mfa_verified"] = False
+        token["mfa_pending"] = user.mfa_devices.filter(is_confirmed=True).exists()
+
         token["roles"] = list(
-            user.role_assignments.filter(is_active=True).values_list("role__name", flat=True)
+            user.role_assignments.filter(is_active=True)
+            .values_list("role__name", flat=True)
         )
         return token
 
     def validate(self, attrs):
         data = super().validate(attrs)
         user = self.user
-        # Tambahkan workspace_id pertama milik user
         from apps.workspace.models import WorkspaceMember
-        member = WorkspaceMember.objects.filter(user=user, status='active').first()
-        data['workspace_id'] = str(member.workspace.id) if member else None
-        data['user'] = {
-            'username': user.username,
-            'email': user.email,
+        member = WorkspaceMember.objects.filter(user=user, status="active").first()
+        data["workspace_id"] = str(member.workspace.id) if member else None
+        data["user"] = {
+            "username": user.username,
+            "email": user.email,
         }
         return data
 
@@ -55,7 +84,10 @@ class BankUserSerializer(serializers.ModelSerializer):
         read_only_fields = ["id", "employee_id", "clearance_level", "is_locked", "last_active"]
 
     def get_roles(self, obj):
-        return list(obj.role_assignments.filter(is_active=True).values_list("role__name", flat=True))
+        return list(
+            obj.role_assignments.filter(is_active=True)
+            .values_list("role__name", flat=True)
+        )
 
 
 class BankUserCreateSerializer(serializers.ModelSerializer):
@@ -64,20 +96,22 @@ class BankUserCreateSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = BankUser
-        fields = ["username", "email", "first_name", "last_name", "department", "password", "password_confirm"]
+        fields = ["username", "email", "first_name", "last_name", "department",
+                  "password", "password_confirm"]
 
     def validate(self, attrs):
         if attrs["password"] != attrs.pop("password_confirm"):
-            raise serializers.ValidationError('Passwords do not match.')
+            raise serializers.ValidationError("Passwords do not match.")
         return attrs
 
     def create(self, validated_data):
-        # Auto-generate unique employee_id
-        for _ in range(10):
-            eid = secrets.token_hex(4)
+        # FIX: token_hex(8) = 64-bit entropy (~4 miliar kombinasi)
+        # vs token_hex(4) sebelumnya = 32-bit (~65K kombinasi)
+        for _ in range(5):
+            eid = secrets.token_hex(8)
             if not BankUser.objects.filter(employee_id=eid).exists():
                 break
-        validated_data['employee_id'] = eid
+        validated_data["employee_id"] = eid
         return BankUser.objects.create_user(**validated_data)
 
 
@@ -122,7 +156,7 @@ class PasswordChangeSerializer(serializers.Serializer):
 
     def validate(self, attrs):
         if attrs["new_password"] != attrs["new_password_confirm"]:
-            raise serializers.ValidationError('Passwords do not match.')
+            raise serializers.ValidationError("Passwords do not match.")
         return attrs
 
 
@@ -132,5 +166,6 @@ class UserRoleAssignmentSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = UserRoleAssignment
-        fields = ["id", "role", "role_name", "workspace", "workspace_name", "granted_at", "expires_at", "is_active"]
+        fields = ["id", "role", "role_name", "workspace", "workspace_name",
+                  "granted_at", "expires_at", "is_active"]
         read_only_fields = ["granted_at"]

@@ -6,23 +6,23 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0010_useractivity_useremailpreference_userpushtoken_and_more'),
+        (r'users', '0010_useractivity_useremailpreference_userpushtoken_and_more'),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='invitetoken',
-            name='expires_at',
+            model_name=r'invitetoken',
+            name=r'expires_at',
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='loginsession',
-            name='expires_at',
+            model_name=r'loginsession',
+            name=r'expires_at',
             field=models.DateTimeField(blank=True, null=True),
         ),
         migrations.AlterField(
-            model_name='privilegedaccessmanagement',
-            name='expires_at',
+            model_name=r'privilegedaccessmanagement',
+            name=r'expires_at',
             field=models.DateTimeField(blank=True, null=True),
         ),
     ]

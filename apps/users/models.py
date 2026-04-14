@@ -146,7 +146,7 @@ class MFADevice(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name="mfa_devices")
     device_type = models.CharField(max_length=16, choices=DEVICE_TYPE_CHOICES)
-    name = models.CharField(max_length=64, help_text="User-visible label e.g. 'iPhone 15'")
+    name = models.CharField(max_length=64, help_text="User-visible label e.g. r'iPhone 15'")
     secret_encrypted = models.TextField(help_text="AES-GCM encrypted TOTP secret or FIDO2 credential")
     is_primary = models.BooleanField(default=False)
     is_confirmed = models.BooleanField(default=False)
@@ -232,7 +232,7 @@ class APIKey(models.Model):
     name = models.CharField(max_length=64)
     key_prefix = models.CharField(max_length=12, db_index=True)   # First 8 chars — for lookup
     key_hash = models.CharField(max_length=256, unique=True)        # SHA-512 hash — never store raw
-    scopes = models.JSONField(default=list, help_text="e.g. ['read:messages', 'write:messages']")
+    scopes = models.JSONField(default=list, help_text="e.g. [r'read:messages', 'write:messages']")
     is_active = models.BooleanField(default=True)
     last_used = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -268,9 +268,9 @@ class UserPublicKey(models.Model):
 class UserDevice(models.Model):
     """Multi-device support per user."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='devices')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'devices')
     device_name = models.CharField(max_length=100)
-    device_type = models.CharField(max_length=20, choices=[('mobile','Mobile'),('desktop','Desktop'),('tablet','Tablet')])
+    device_type = models.CharField(max_length=20, choices=[(r'mobile','Mobile'),('desktop','Desktop'),('tablet','Tablet')])
     device_fingerprint = models.CharField(max_length=255, unique=True)
     push_token = models.TextField(blank=True)
     is_trusted = models.BooleanField(default=False)
@@ -278,13 +278,13 @@ class UserDevice(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_device'
+        db_table = r'users_device'
 
 
 class UserNotification(models.Model):
     """Push notifications."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='notifications')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'notifications')
     title = models.CharField(max_length=255)
     body = models.TextField()
     notification_type = models.CharField(max_length=50)
@@ -293,13 +293,13 @@ class UserNotification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_notification'
+        db_table = r'users_notification'
 
 
 class UserActivityLog(models.Model):
     """Track user activity."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='activity_logs')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'activity_logs')
     action = models.CharField(max_length=100)
     ip_address = models.GenericIPAddressField(null=True)
     user_agent = models.TextField(blank=True)
@@ -307,73 +307,73 @@ class UserActivityLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_activity_log'
+        db_table = r'users_activity_log'
 
 
 class UserBlocked(models.Model):
     """Block list."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    blocker = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='blocking')
-    blocked = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='blocked_by')
+    blocker = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'blocking')
+    blocked = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'blocked_by')
     reason = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_blocked'
-        unique_together = ['blocker', 'blocked']
+        db_table = r'users_blocked'
+        unique_together = [r'blocker', 'blocked']
 
 
 class UserContact(models.Model):
     """Contact list."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='contacts')
-    contact = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='contact_of')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'contacts')
+    contact = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'contact_of')
     nickname = models.CharField(max_length=100, blank=True)
     is_favourite = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_contact'
-        unique_together = ['user', 'contact']
+        db_table = r'users_contact'
+        unique_together = [r'user', 'contact']
 
 
 class UserCustomStatus(models.Model):
     """Custom user status."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(BankUser, on_delete=models.CASCADE, related_name='custom_status')
+    user = models.OneToOneField(BankUser, on_delete=models.CASCADE, related_name=r'custom_status')
     text = models.CharField(max_length=100, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'users_custom_status'
+        db_table = r'users_custom_status'
 
 
 class UserPreference(models.Model):
     """UI/UX preferences."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(BankUser, on_delete=models.CASCADE, related_name='preferences')
-    theme = models.CharField(max_length=20, default='dark')
-    language = models.CharField(max_length=10, default='en')
+    user = models.OneToOneField(BankUser, on_delete=models.CASCADE, related_name=r'preferences')
+    theme = models.CharField(max_length=20, default=r'dark')
+    language = models.CharField(max_length=10, default=r'en')
     notification_sound = models.BooleanField(default=True)
     compact_mode = models.BooleanField(default=False)
     settings = models.JSONField(default=dict)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'users_preference'
+        db_table = r'users_preference'
 
 
 class UserBadge(models.Model):
     """Achievement badges."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='badges')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'badges')
     badge_type = models.CharField(max_length=50)
     awarded_at = models.DateTimeField(auto_now_add=True)
-    awarded_by = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name='awarded_badges')
+    awarded_by = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name=r'awarded_badges')
 
     class Meta:
-        db_table = 'users_badge'
+        db_table = r'users_badge'
 
 
 class RBACPolicy(models.Model):
@@ -385,26 +385,26 @@ class RBACPolicy(models.Model):
     resources = models.JSONField(default=list)
     conditions = models.JSONField(default=dict)
     is_active = models.BooleanField(default=True)
-    created_by = models.ForeignKey('BankUser', on_delete=models.SET_NULL, null=True)
+    created_by = models.ForeignKey(r'BankUser', on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'users_rbac_policy'
+        db_table = r'users_rbac_policy'
 
 
 class RBACPolicyAssignment(models.Model):
     """Assign RBAC policies to users."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('BankUser', on_delete=models.CASCADE, related_name='rbac_policies')
+    user = models.ForeignKey(r'BankUser', on_delete=models.CASCADE, related_name='rbac_policies')
     policy = models.ForeignKey(RBACPolicy, on_delete=models.CASCADE)
-    granted_by = models.ForeignKey('BankUser', on_delete=models.SET_NULL, null=True, related_name='granted_policies')
+    granted_by = models.ForeignKey(r'BankUser', on_delete=models.SET_NULL, null=True, related_name='granted_policies')
     expires_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_rbac_assignment'
-        unique_together = ['user', 'policy']
+        db_table = r'users_rbac_assignment'
+        unique_together = [r'user', 'policy']
 
 
 class CurrencyRate(models.Model):
@@ -413,25 +413,25 @@ class CurrencyRate(models.Model):
     base_currency = models.CharField(max_length=3)
     target_currency = models.CharField(max_length=3)
     rate = models.DecimalField(max_digits=20, decimal_places=8)
-    source = models.CharField(max_length=50, default='BI')
+    source = models.CharField(max_length=50, default=r'BI')
     is_active = models.BooleanField(default=True)
     effective_at = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_currency_rate'
-        unique_together = ['base_currency', 'target_currency', 'effective_at']
+        db_table = r'users_currency_rate'
+        unique_together = [r'base_currency', 'target_currency', 'effective_at']
 
 
 class BiometricAuth(models.Model):
     """Biometric authentication data."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='biometrics')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'biometrics')
     biometric_type = models.CharField(max_length=30, choices=[
-        ('fingerprint','Fingerprint'),
-        ('face','Face Recognition'),
-        ('voice','Voice Print'),
-        ('iris','Iris Scan'),
+        (r'fingerprint','Fingerprint'),
+        (r'face','Face Recognition'),
+        (r'voice','Voice Print'),
+        (r'iris','Iris Scan'),
     ])
     template_hash = models.CharField(max_length=64)
     encrypted_template_b64 = models.TextField()
@@ -440,40 +440,40 @@ class BiometricAuth(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_biometric_auth'
+        db_table = r'users_biometric_auth'
 
 
 class AccessTimeRestriction(models.Model):
     """Time-based access restrictions."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='time_restrictions')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'time_restrictions')
     allowed_days = models.JSONField(default=list)
     allowed_hours_start = models.TimeField()
     allowed_hours_end = models.TimeField()
-    timezone = models.CharField(max_length=50, default='Asia/Jakarta')
+    timezone = models.CharField(max_length=50, default=r'Asia/Jakarta')
     is_active = models.BooleanField(default=True)
-    created_by = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name='created_restrictions')
+    created_by = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name=r'created_restrictions')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_access_time_restriction'
+        db_table = r'users_access_time_restriction'
 
 
 class IPWhitelist(models.Model):
     """IP whitelist per user/workspace."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='ip_whitelist', null=True, blank=True)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='ip_whitelist', null=True, blank=True)
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'ip_whitelist', null=True, blank=True)
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='ip_whitelist', null=True, blank=True)
     ip_address = models.GenericIPAddressField()
     ip_range = models.CharField(max_length=50, blank=True)
     label = models.CharField(max_length=100, blank=True)
     is_active = models.BooleanField(default=True)
-    created_by = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name='created_whitelists')
+    created_by = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name=r'created_whitelists')
     created_at = models.DateTimeField(auto_now_add=True)
     expires_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = 'users_ip_whitelist'
+        db_table = r'users_ip_whitelist'
 
 
 class SecurityIncident(models.Model):
@@ -481,61 +481,61 @@ class SecurityIncident(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     incident_number = models.CharField(max_length=50, unique=True)
     incident_type = models.CharField(max_length=50, choices=[
-        ('unauthorized_access','Unauthorized Access'),
-        ('data_breach','Data Breach'),
-        ('brute_force','Brute Force'),
-        ('insider_threat','Insider Threat'),
-        ('malware','Malware'),
-        ('phishing','Phishing'),
-        ('ddos','DDoS'),
+        (r'unauthorized_access','Unauthorized Access'),
+        (r'data_breach','Data Breach'),
+        (r'brute_force','Brute Force'),
+        (r'insider_threat','Insider Threat'),
+        (r'malware','Malware'),
+        (r'phishing','Phishing'),
+        (r'ddos','DDoS'),
     ])
     severity = models.CharField(max_length=20, choices=[
-        ('low','Low'), ('medium','Medium'),
-        ('high','High'), ('critical','Critical'),
+        (r'low','Low'), ('medium','Medium'),
+        (r'high','High'), ('critical','Critical'),
     ])
-    affected_users = models.ManyToManyField(BankUser, related_name='security_incidents', blank=True)
+    affected_users = models.ManyToManyField(BankUser, related_name=r'security_incidents', blank=True)
     description = models.TextField()
     remediation = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=[
-        ('open','Open'), ('investigating','Investigating'),
-        ('contained','Contained'), ('resolved','Resolved'),
-    ], default='open')
+        (r'open','Open'), ('investigating','Investigating'),
+        (r'contained','Contained'), ('resolved','Resolved'),
+    ], default=r'open')
     detected_at = models.DateTimeField(auto_now_add=True)
     resolved_at = models.DateTimeField(null=True, blank=True)
-    assigned_to = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name='assigned_incidents')
+    assigned_to = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name=r'assigned_incidents')
 
     class Meta:
-        db_table = 'users_security_incident'
+        db_table = r'users_security_incident'
 
 
 class DataClassification(models.Model):
     """Data classification labels."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE)
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE)
     resource_type = models.CharField(max_length=50)
     resource_id = models.CharField(max_length=50)
     classification = models.CharField(max_length=30, choices=[
-        ('public','Public'),
-        ('internal','Internal'),
-        ('confidential','Confidential'),
-        ('restricted','Restricted'),
-        ('top_secret','Top Secret'),
+        (r'public','Public'),
+        (r'internal','Internal'),
+        (r'confidential','Confidential'),
+        (r'restricted','Restricted'),
+        (r'top_secret','Top Secret'),
     ])
     classified_by = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True)
     classified_at = models.DateTimeField(auto_now_add=True)
     review_date = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = 'users_data_classification'
+        db_table = r'users_data_classification'
 
 
 class EmployeeOnboarding(models.Model):
     """Employee onboarding workflow."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(BankUser, on_delete=models.CASCADE, related_name='onboarding')
+    user = models.OneToOneField(BankUser, on_delete=models.CASCADE, related_name=r'onboarding')
     department = models.CharField(max_length=100)
     position = models.CharField(max_length=100)
-    manager = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name='managed_onboardings')
+    manager = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name=r'managed_onboardings')
     steps_completed = models.JSONField(default=list)
     background_check_passed = models.BooleanField(default=False)
     nda_signed = models.BooleanField(default=False)
@@ -547,18 +547,18 @@ class EmployeeOnboarding(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_employee_onboarding'
+        db_table = r'users_employee_onboarding'
 
 
 class EmployeeOffboarding(models.Model):
     """Employee offboarding — revoke all access."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(BankUser, on_delete=models.CASCADE, related_name='offboarding')
+    user = models.OneToOneField(BankUser, on_delete=models.CASCADE, related_name=r'offboarding')
     reason = models.CharField(max_length=50, choices=[
-        ('resignation','Resignation'),
-        ('termination','Termination'),
-        ('retirement','Retirement'),
-        ('transfer','Transfer'),
+        (r'resignation','Resignation'),
+        (r'termination','Termination'),
+        (r'retirement','Retirement'),
+        (r'transfer','Transfer'),
     ])
     access_revoked = models.BooleanField(default=False)
     keys_rotated = models.BooleanField(default=False)
@@ -566,31 +566,31 @@ class EmployeeOffboarding(models.Model):
     equipment_returned = models.BooleanField(default=False)
     exit_interview_done = models.BooleanField(default=False)
     last_day = models.DateField(null=True, blank=True)
-    processed_by = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name='processed_offboardings')
+    processed_by = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name=r'processed_offboardings')
     completed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_employee_offboarding'
+        db_table = r'users_employee_offboarding'
 
 
 class TrainingRecord(models.Model):
     """Security + compliance training records."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='training_records')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'training_records')
     training_type = models.CharField(max_length=100, choices=[
-        ('aml_awareness','AML Awareness'),
-        ('data_privacy','Data Privacy'),
-        ('cybersecurity','Cybersecurity'),
-        ('code_of_conduct','Code of Conduct'),
-        ('insider_trading','Insider Trading Policy'),
-        ('gdpr','GDPR Compliance'),
-        ('iso27001','ISO 27001'),
+        (r'aml_awareness','AML Awareness'),
+        (r'data_privacy','Data Privacy'),
+        (r'cybersecurity','Cybersecurity'),
+        (r'code_of_conduct','Code of Conduct'),
+        (r'insider_trading','Insider Trading Policy'),
+        (r'gdpr','GDPR Compliance'),
+        (r'iso27001','ISO 27001'),
     ])
     status = models.CharField(max_length=20, choices=[
-        ('pending','Pending'), ('in_progress','In Progress'),
-        ('completed','Completed'), ('expired','Expired'),
-    ], default='pending')
+        (r'pending','Pending'), ('in_progress','In Progress'),
+        (r'completed','Completed'), ('expired','Expired'),
+    ], default=r'pending')
     score = models.FloatField(null=True, blank=True)
     passed = models.BooleanField(default=False)
     completed_at = models.DateTimeField(null=True, blank=True)
@@ -598,20 +598,20 @@ class TrainingRecord(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_training_record'
+        db_table = r'users_training_record'
 
 
 class VPNSession(models.Model):
     """VPN session tracking."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='vpn_sessions')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'vpn_sessions')
     vpn_ip = models.GenericIPAddressField()
     real_ip = models.GenericIPAddressField(null=True)
     protocol = models.CharField(max_length=20, choices=[
-        ('wireguard','WireGuard'),
-        ('openvpn','OpenVPN'),
-        ('ipsec','IPSec'),
-    ], default='wireguard')
+        (r'wireguard','WireGuard'),
+        (r'openvpn','OpenVPN'),
+        (r'ipsec','IPSec'),
+    ], default=r'wireguard')
     is_active = models.BooleanField(default=True)
     connected_at = models.DateTimeField(auto_now_add=True)
     disconnected_at = models.DateTimeField(null=True, blank=True)
@@ -619,7 +619,7 @@ class VPNSession(models.Model):
     bytes_received = models.BigIntegerField(default=0)
 
     class Meta:
-        db_table = 'users_vpn_session'
+        db_table = r'users_vpn_session'
 
 
 class ZeroTrustPolicy(models.Model):
@@ -636,8 +636,8 @@ class ZeroTrustPolicy(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'users_zero_trust_policy'
-        ordering = ['priority']
+        db_table = r'users_zero_trust_policy'
+        ordering = [r'priority']
 
 
 class AdaptiveAuthPolicy(models.Model):
@@ -648,24 +648,24 @@ class AdaptiveAuthPolicy(models.Model):
     auth_requirements = models.JSONField(default=list)
     risk_threshold = models.FloatField(default=0.7)
     action = models.CharField(max_length=50, choices=[
-        ('allow','Allow'),
-        ('step_up_mfa','Step-Up MFA'),
-        ('block','Block'),
-        ('notify','Notify Only'),
-        ('challenge','Challenge'),
-    ], default='step_up_mfa')
+        (r'allow','Allow'),
+        (r'step_up_mfa','Step-Up MFA'),
+        (r'block','Block'),
+        (r'notify','Notify Only'),
+        (r'challenge','Challenge'),
+    ], default=r'step_up_mfa')
     is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_adaptive_auth_policy'
+        db_table = r'users_adaptive_auth_policy'
 
 
 class SessionRiskScore(models.Model):
     """Real-time session risk scoring."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='risk_scores')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'risk_scores')
     session_id = models.CharField(max_length=100)
     risk_score = models.FloatField(default=0.0)
     risk_factors = models.JSONField(default=dict)
@@ -676,77 +676,77 @@ class SessionRiskScore(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_session_risk_score'
+        db_table = r'users_session_risk_score'
 
 
 class PrivilegedAccessManagement(models.Model):
     """PAM — Privileged access management."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='pam_sessions')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'pam_sessions')
     resource = models.CharField(max_length=100)
     access_type = models.CharField(max_length=50, choices=[
-        ('database','Database'),
-        ('server','Server'),
-        ('network','Network Device'),
-        ('application','Application'),
-        ('cloud','Cloud Console'),
+        (r'database','Database'),
+        (r'server','Server'),
+        (r'network','Network Device'),
+        (r'application','Application'),
+        (r'cloud','Cloud Console'),
     ])
     justification = models.TextField()
-    approved_by = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name='pam_approvals')
+    approved_by = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name=r'pam_approvals')
     session_recording_cid = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=[
-        ('pending','Pending'), ('approved','Approved'),
-        ('active','Active'), ('completed','Completed'),
-        ('revoked','Revoked'),
-    ], default='pending')
+        (r'pending','Pending'), ('approved','Approved'),
+        (r'active','Active'), ('completed','Completed'),
+        (r'revoked','Revoked'),
+    ], default=r'pending')
     expires_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = 'users_pam_session'
+        db_table = r'users_pam_session'
 
 
 class UserSkill(models.Model):
     """User skills and expertise."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='skills')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'skills')
     skill_name = models.CharField(max_length=100)
     proficiency = models.CharField(max_length=20, choices=[
-        ('beginner','Beginner'),
-        ('intermediate','Intermediate'),
-        ('advanced','Advanced'),
-        ('expert','Expert'),
+        (r'beginner','Beginner'),
+        (r'intermediate','Intermediate'),
+        (r'advanced','Advanced'),
+        (r'expert','Expert'),
     ])
     years_experience = models.PositiveSmallIntegerField(default=0)
     is_verified = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_skill'
-        unique_together = ['user', 'skill_name']
+        db_table = r'users_skill'
+        unique_together = [r'user', 'skill_name']
 
 
 class UserAvailability(models.Model):
     """User availability schedule."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='availability')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'availability')
     day_of_week = models.PositiveSmallIntegerField(choices=[(i,i) for i in range(7)])
     start_time = models.TimeField()
     end_time = models.TimeField()
-    timezone = models.CharField(max_length=50, default='Asia/Jakarta')
+    timezone = models.CharField(max_length=50, default=r'Asia/Jakarta')
     is_active = models.BooleanField(default=True)
 
     class Meta:
-        db_table = 'users_availability'
-        unique_together = ['user', 'day_of_week']
+        db_table = r'users_availability'
+        unique_together = [r'user', 'day_of_week']
 
 
 class UserPerformanceReview(models.Model):
     """Performance reviews."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='performance_reviews')
-    reviewer = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='reviews_given')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'performance_reviews')
+    reviewer = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'reviews_given')
     period = models.CharField(max_length=20)
     overall_score = models.FloatField(default=0.0)
     strengths = models.TextField(blank=True)
@@ -756,13 +756,13 @@ class UserPerformanceReview(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_performance_review'
+        db_table = r'users_performance_review'
 
 
 class UserCertification(models.Model):
     """Professional certifications."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='certifications')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'certifications')
     name = models.CharField(max_length=255)
     issuer = models.CharField(max_length=100)
     credential_id = models.CharField(max_length=100, blank=True)
@@ -773,18 +773,18 @@ class UserCertification(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_certification'
+        db_table = r'users_certification'
 
 
 class UserFeedback(models.Model):
     """360-degree feedback."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    from_user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='feedback_given')
-    to_user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='feedback_received')
+    from_user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'feedback_given')
+    to_user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'feedback_received')
     feedback_type = models.CharField(max_length=20, choices=[
-        ('praise','Praise'),
-        ('suggestion','Suggestion'),
-        ('constructive','Constructive'),
+        (r'praise','Praise'),
+        (r'suggestion','Suggestion'),
+        (r'constructive','Constructive'),
     ])
     content_encrypted_b64 = models.TextField()
     nonce_b64 = models.TextField()
@@ -793,13 +793,13 @@ class UserFeedback(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_feedback'
+        db_table = r'users_feedback'
 
 
 class UserWorkload(models.Model):
     """User workload tracking."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='workloads')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'workloads')
     week_start = models.DateField()
     planned_hours = models.FloatField(default=40.0)
     actual_hours = models.FloatField(default=0.0)
@@ -808,35 +808,35 @@ class UserWorkload(models.Model):
     workload_score = models.FloatField(default=0.0)
 
     class Meta:
-        db_table = 'users_workload'
-        unique_together = ['user', 'week_start']
+        db_table = r'users_workload'
+        unique_together = [r'user', 'week_start']
 
 
 class TeamMembership(models.Model):
     """Team memberships."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='teams')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='teams')
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    team_lead = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name='led_teams')
-    members = models.ManyToManyField(BankUser, related_name='teams', blank=True)
+    team_lead = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name=r'led_teams')
+    members = models.ManyToManyField(BankUser, related_name=r'teams', blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_team'
+        db_table = r'users_team'
 
 
 class UserGoal(models.Model):
     """Personal goals."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='personal_goals')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'personal_goals')
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     goal_type = models.CharField(max_length=20, choices=[
-        ('skill','Skill Development'),
-        ('career','Career Growth'),
-        ('project','Project Goal'),
-        ('personal','Personal'),
+        (r'skill','Skill Development'),
+        (r'career','Career Growth'),
+        (r'project','Project Goal'),
+        (r'personal','Personal'),
     ])
     progress = models.FloatField(default=0.0)
     due_date = models.DateField(null=True, blank=True)
@@ -844,12 +844,12 @@ class UserGoal(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'users_goal'
+        db_table = r'users_goal'
 
 
 class UserAnalytics(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='analytics')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'analytics')
     date = models.DateField()
     messages_sent = models.PositiveIntegerField(default=0)
     tasks_completed = models.PositiveIntegerField(default=0)
@@ -857,101 +857,101 @@ class UserAnalytics(models.Model):
     focus_minutes = models.PositiveIntegerField(default=0)
     login_count = models.PositiveIntegerField(default=0)
     class Meta:
-        db_table = 'users_analytics'
-        unique_together = ['user', 'date']
+        db_table = r'users_analytics'
+        unique_together = [r'user', 'date']
 
 class UserMentor(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    mentor = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='mentees')
-    mentee = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='mentors')
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE)
+    mentor = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'mentees')
+    mentee = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'mentors')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE)
     focus_areas = models.JSONField(default=list)
-    meeting_frequency = models.CharField(max_length=20, default='weekly')
+    meeting_frequency = models.CharField(max_length=20, default=r'weekly')
     is_active = models.BooleanField(default=True)
     started_at = models.DateTimeField(auto_now_add=True)
     class Meta:
-        db_table = 'users_mentor'
-        unique_together = ['mentor', 'mentee']
+        db_table = r'users_mentor'
+        unique_together = [r'mentor', 'mentee']
 
 class UserReward(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='rewards')
-    reward_type = models.CharField(max_length=50, choices=[('kudos','Kudos'),('star','Star Employee'),('innovation','Innovation Award'),('teamwork','Teamwork Award')])
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'rewards')
+    reward_type = models.CharField(max_length=50, choices=[(r'kudos','Kudos'),('star','Star Employee'),('innovation','Innovation Award'),('teamwork','Teamwork Award')])
     points = models.PositiveIntegerField(default=0)
     message = models.TextField(blank=True)
-    given_by = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name='rewards_given')
+    given_by = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name=r'rewards_given')
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'users_reward'
+    class Meta: db_table = r'users_reward'
 
 class UserLanguage(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='languages')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'languages')
     language = models.CharField(max_length=50)
-    proficiency = models.CharField(max_length=20, choices=[('basic','Basic'),('conversational','Conversational'),('fluent','Fluent'),('native','Native')])
+    proficiency = models.CharField(max_length=20, choices=[(r'basic','Basic'),('conversational','Conversational'),('fluent','Fluent'),('native','Native')])
     class Meta:
-        db_table = 'users_language'
-        unique_together = ['user', 'language']
+        db_table = r'users_language'
+        unique_together = [r'user', 'language']
 
 class UserEducation(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='education')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'education')
     institution = models.CharField(max_length=255)
     degree = models.CharField(max_length=100)
     field_of_study = models.CharField(max_length=100)
     start_year = models.PositiveSmallIntegerField()
     end_year = models.PositiveSmallIntegerField(null=True)
     is_current = models.BooleanField(default=False)
-    class Meta: db_table = 'users_education'
+    class Meta: db_table = r'users_education'
 
 class UserWorkHistory(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='work_history')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'work_history')
     company = models.CharField(max_length=255)
     position = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     start_date = models.DateField()
     end_date = models.DateField(null=True)
     is_current = models.BooleanField(default=False)
-    class Meta: db_table = 'users_work_history'
+    class Meta: db_table = r'users_work_history'
 
 class UserPortfolio(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='portfolio')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'portfolio')
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True)
     url = models.URLField(blank=True)
     file_cid = models.TextField(blank=True)
     tags = models.JSONField(default=list)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'users_portfolio'
+    class Meta: db_table = r'users_portfolio'
 
 class UserTimeOff(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='time_off')
-    leave_type = models.CharField(max_length=20, choices=[('annual','Annual'),('sick','Sick'),('personal','Personal'),('parental','Parental'),('unpaid','Unpaid')])
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'time_off')
+    leave_type = models.CharField(max_length=20, choices=[(r'annual','Annual'),('sick','Sick'),('personal','Personal'),('parental','Parental'),('unpaid','Unpaid')])
     start_date = models.DateField()
     end_date = models.DateField()
     reason = models.TextField(blank=True)
-    status = models.CharField(max_length=20, default='pending')
-    approved_by = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name='approved_leaves')
+    status = models.CharField(max_length=20, default=r'pending')
+    approved_by = models.ForeignKey(BankUser, on_delete=models.SET_NULL, null=True, related_name=r'approved_leaves')
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'users_time_off'
+    class Meta: db_table = r'users_time_off'
 
 class UserLeaveBalance(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='leave_balance')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'leave_balance')
     year = models.PositiveSmallIntegerField()
     annual_total = models.FloatField(default=12.0)
     annual_used = models.FloatField(default=0.0)
     sick_total = models.FloatField(default=12.0)
     sick_used = models.FloatField(default=0.0)
     class Meta:
-        db_table = 'users_leave_balance'
-        unique_together = ['user', 'year']
+        db_table = r'users_leave_balance'
+        unique_together = [r'user', 'year']
 
 class Payslip(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='payslips')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'payslips')
     period = models.CharField(max_length=20)
     gross_salary = models.DecimalField(max_digits=15, decimal_places=2)
     deductions = models.DecimalField(max_digits=15, decimal_places=2, default=0)
@@ -960,109 +960,109 @@ class Payslip(models.Model):
     is_paid = models.BooleanField(default=False)
     paid_at = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'users_payslip'
+    class Meta: db_table = r'users_payslip'
 
 
 class UserSearchHistory(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='search_history')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'search_history')
     query = models.CharField(max_length=255)
     result_count = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'users_search_history'
+    class Meta: db_table = r'users_search_history'
 
 class UserReadStatus(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='read_statuses')
-    channel = models.ForeignKey('workspace.Channel', on_delete=models.CASCADE)
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'read_statuses')
+    channel = models.ForeignKey(r'workspace.Channel', on_delete=models.CASCADE)
     last_read_message_id = models.CharField(max_length=50, blank=True)
     last_read_at = models.DateTimeField(auto_now=True)
     class Meta:
-        db_table = 'users_read_status'
-        unique_together = ['user', 'channel']
+        db_table = r'users_read_status'
+        unique_together = [r'user', 'channel']
 
 class UserPushToken(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='push_tokens')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'push_tokens')
     token = models.TextField(unique=True)
-    platform = models.CharField(max_length=10, choices=[('ios','iOS'),('android','Android'),('web','Web')])
+    platform = models.CharField(max_length=10, choices=[(r'ios','iOS'),('android','Android'),('web','Web')])
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'users_push_token'
+    class Meta: db_table = r'users_push_token'
 
 class UserEmailPreference(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(BankUser, on_delete=models.CASCADE, related_name='email_prefs')
+    user = models.OneToOneField(BankUser, on_delete=models.CASCADE, related_name=r'email_prefs')
     mentions = models.BooleanField(default=True)
     direct_messages = models.BooleanField(default=True)
     task_assignments = models.BooleanField(default=True)
     weekly_digest = models.BooleanField(default=True)
     security_alerts = models.BooleanField(default=True)
     updated_at = models.DateTimeField(auto_now=True)
-    class Meta: db_table = 'users_email_pref'
+    class Meta: db_table = r'users_email_pref'
 
 class UserTheme(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(BankUser, on_delete=models.CASCADE, related_name='theme')
-    mode = models.CharField(max_length=10, choices=[('dark','Dark'),('light','Light'),('system','System')], default='dark')
-    accent_color = models.CharField(max_length=7, default='#6366f1')
-    font_size = models.CharField(max_length=10, choices=[('small','Small'),('medium','Medium'),('large','Large')], default='medium')
+    user = models.OneToOneField(BankUser, on_delete=models.CASCADE, related_name=r'theme')
+    mode = models.CharField(max_length=10, choices=[(r'dark','Dark'),('light','Light'),('system','System')], default='dark')
+    accent_color = models.CharField(max_length=7, default=r'#6366f1')
+    font_size = models.CharField(max_length=10, choices=[(r'small','Small'),('medium','Medium'),('large','Large')], default='medium')
     compact_mode = models.BooleanField(default=False)
     updated_at = models.DateTimeField(auto_now=True)
-    class Meta: db_table = 'users_theme'
+    class Meta: db_table = r'users_theme'
 
 class UserShortcut(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='shortcuts')
-    shortcut_type = models.CharField(max_length=20, choices=[('channel','Channel'),('dm','Direct Message'),('file','File'),('task','Task')])
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'shortcuts')
+    shortcut_type = models.CharField(max_length=20, choices=[(r'channel','Channel'),('dm','Direct Message'),('file','File'),('task','Task')])
     target_id = models.CharField(max_length=50)
     label = models.CharField(max_length=100)
     order = models.PositiveSmallIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'users_shortcut'
+    class Meta: db_table = r'users_shortcut'
 
 class UserActivity(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='activities')
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'activities')
     activity_type = models.CharField(max_length=50)
     description = models.TextField()
     metadata = models.JSONField(default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'users_activity'
+    class Meta: db_table = r'users_activity'
 
 class UserStreak(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.OneToOneField(BankUser, on_delete=models.CASCADE, related_name='streak')
+    user = models.OneToOneField(BankUser, on_delete=models.CASCADE, related_name=r'streak')
     current_streak = models.PositiveIntegerField(default=0)
     longest_streak = models.PositiveIntegerField(default=0)
     last_active = models.DateField(null=True)
     total_active_days = models.PositiveIntegerField(default=0)
     updated_at = models.DateTimeField(auto_now=True)
-    class Meta: db_table = 'users_streak'
+    class Meta: db_table = r'users_streak'
 
 class UserAchievement(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='achievements')
-    achievement_type = models.CharField(max_length=50, choices=[('first_message','First Message'),('100_messages','100 Messages'),('task_master','Task Master'),('early_bird','Early Bird'),('night_owl','Night Owl'),('helper','Team Helper')])
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'achievements')
+    achievement_type = models.CharField(max_length=50, choices=[(r'first_message','First Message'),('100_messages','100 Messages'),('task_master','Task Master'),('early_bird','Early Bird'),('night_owl','Night Owl'),('helper','Team Helper')])
     earned_at = models.DateTimeField(auto_now_add=True)
     class Meta:
-        db_table = 'users_achievement'
-        unique_together = ['user', 'achievement_type']
+        db_table = r'users_achievement'
+        unique_together = [r'user', 'achievement_type']
 
 class UserSavedItem(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='saved_items')
-    item_type = models.CharField(max_length=20, choices=[('message','Message'),('file','File'),('task','Task'),('wiki','Wiki Page')])
+    user = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'saved_items')
+    item_type = models.CharField(max_length=20, choices=[(r'message','Message'),('file','File'),('task','Task'),('wiki','Wiki Page')])
     item_id = models.CharField(max_length=50)
     note = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'users_saved_item'
+    class Meta: db_table = r'users_saved_item'
 
 class UserFollower(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    follower = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='following')
-    following = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name='followers')
+    follower = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'following')
+    following = models.ForeignKey(BankUser, on_delete=models.CASCADE, related_name=r'followers')
     created_at = models.DateTimeField(auto_now_add=True)
     class Meta:
-        db_table = 'users_follower'
-        unique_together = ['follower', 'following']
+        db_table = r'users_follower'
+        unique_together = [r'follower', 'following']

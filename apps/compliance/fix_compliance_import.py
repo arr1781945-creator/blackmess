@@ -1,4 +1,4 @@
-with open('apps/compliance/views.py', 'r') as f:
+with open(r'apps/compliance/views.py', 'r') as f:
     c = f.read()
 
 # Hapus duplikat import pertama yang lama
@@ -13,7 +13,7 @@ new = "from .serializers import ("
 
 c = c.replace(old, new, 1)
 
-with open('apps/compliance/views.py', 'w') as f:
+with open(r'apps/compliance/views.py', 'w') as f:
     f.write(c)
 
 print("Done!")

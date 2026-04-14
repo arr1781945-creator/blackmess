@@ -9,43 +9,43 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('vault', '0006_cbdctransaction_digitalassetcustody_and_more'),
+        (r'vault', '0006_cbdctransaction_digitalassetcustody_and_more'),
         migrations.swappable_dependency(settings.AUTH_USER_MODEL),
     ]
 
     operations = [
         migrations.CreateModel(
-            name='PostQuantumMigration',
+            name=r'PostQuantumMigration',
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('migration_type', models.CharField(choices=[('key_generation', 'Key Generation'), ('key_exchange', 'Key Exchange'), ('signature', 'Signature'), ('encryption', 'Encryption')], max_length=50)),
-                ('from_algorithm', models.CharField(max_length=50)),
-                ('to_algorithm', models.CharField(max_length=50)),
-                ('status', models.CharField(choices=[('pending', 'Pending'), ('in_progress', 'In Progress'), ('completed', 'Completed'), ('failed', 'Failed')], default='pending', max_length=20)),
-                ('completed_at', models.DateTimeField(blank=True, null=True)),
-                ('created_at', models.DateTimeField(auto_now_add=True)),
-                ('user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='pqc_migrations', to=settings.AUTH_USER_MODEL)),
+                (r'id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (r'migration_type', models.CharField(choices=[('key_generation', 'Key Generation'), ('key_exchange', 'Key Exchange'), ('signature', 'Signature'), ('encryption', 'Encryption')], max_length=50)),
+                (r'from_algorithm', models.CharField(max_length=50)),
+                (r'to_algorithm', models.CharField(max_length=50)),
+                (r'status', models.CharField(choices=[('pending', 'Pending'), ('in_progress', 'In Progress'), ('completed', 'Completed'), ('failed', 'Failed')], default='pending', max_length=20)),
+                (r'completed_at', models.DateTimeField(blank=True, null=True)),
+                (r'created_at', models.DateTimeField(auto_now_add=True)),
+                (r'user', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='pqc_migrations', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'db_table': 'vault_pqc_migration',
+                r'db_table': 'vault_pqc_migration',
             },
         ),
         migrations.CreateModel(
-            name='QuantumKeyDistribution',
+            name=r'QuantumKeyDistribution',
             fields=[
-                ('id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
-                ('protocol', models.CharField(choices=[('bb84', 'BB84'), ('e91', 'E91'), ('b92', 'B92'), ('sarg04', 'SARG04')], default='bb84', max_length=50)),
-                ('key_length_bits', models.PositiveIntegerField(default=256)),
-                ('qber', models.FloatField(default=0.0)),
-                ('is_secure', models.BooleanField(default=True)),
-                ('session_key_hash', models.CharField(blank=True, max_length=64)),
-                ('established_at', models.DateTimeField(auto_now_add=True)),
-                ('expires_at', models.DateTimeField(blank=True, null=True)),
-                ('initiator', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='qkd_initiated', to=settings.AUTH_USER_MODEL)),
-                ('responder', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='qkd_responded', to=settings.AUTH_USER_MODEL)),
+                (r'id', models.UUIDField(default=uuid.uuid4, editable=False, primary_key=True, serialize=False)),
+                (r'protocol', models.CharField(choices=[('bb84', 'BB84'), ('e91', 'E91'), ('b92', 'B92'), ('sarg04', 'SARG04')], default='bb84', max_length=50)),
+                (r'key_length_bits', models.PositiveIntegerField(default=256)),
+                (r'qber', models.FloatField(default=0.0)),
+                (r'is_secure', models.BooleanField(default=True)),
+                (r'session_key_hash', models.CharField(blank=True, max_length=64)),
+                (r'established_at', models.DateTimeField(auto_now_add=True)),
+                (r'expires_at', models.DateTimeField(blank=True, null=True)),
+                (r'initiator', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='qkd_initiated', to=settings.AUTH_USER_MODEL)),
+                (r'responder', models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, related_name='qkd_responded', to=settings.AUTH_USER_MODEL)),
             ],
             options={
-                'db_table': 'vault_quantum_key_distribution',
+                r'db_table': 'vault_quantum_key_distribution',
             },
         ),
     ]

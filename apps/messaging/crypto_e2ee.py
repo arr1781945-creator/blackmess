@@ -61,7 +61,7 @@ def derive_message_key(shared_secret: bytes, channel_id: str, message_id: str) -
 
 def encrypt_system_message(plaintext: str, channel_id: str) -> dict:
     """
-    Encrypt a server-generated system message (e.g. 'User joined channel').
+    Encrypt a server-generated system message (e.g. r'User joined channel').
     Uses a deterministic per-channel server key derived from AES_MASTER_KEY.
     """
     from django.conf import settings

@@ -1,4 +1,4 @@
-with open('core/urls.py', 'r') as f:
+with open(r'core/urls.py', 'r') as f:
     c = f.read()
 
 old = """schema_patterns = [
@@ -19,7 +19,7 @@ new = """schema_patterns = [
 
 c = c.replace(old, new)
 
-with open('core/urls.py', 'w') as f:
+with open(r'core/urls.py', 'w') as f:
     f.write(c)
 
 print("Done!")

@@ -2,10 +2,10 @@ import os
 from sendgrid import SendGridAPIClient
 from sendgrid.helpers.mail import Mail, Content
 
-FROM_EMAIL = 'blackmessage312415@gmail.com'
-FROM_NAME = 'BlackMess'
+FROM_EMAIL = r'blackmessage312415@gmail.com'
+FROM_NAME = r'BlackMess'
 
-SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY', '')
+SENDGRID_API_KEY = os.environ.get(r'SENDGRID_API_KEY', '')
 
 LOGO = """
 <table cellpadding="0" cellspacing="0" style="margin:0 auto;">
@@ -43,7 +43,7 @@ def _template(content_html: str, plain_text: str) -> tuple:
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <meta name="color-scheme" content="dark">
 </head>
-<body style="margin:0;padding:0;background-color:#0a0a0f;font-family:Arial,'Helvetica Neue',sans-serif;">
+<body style="margin:0;padding:0;background-color:#0a0a0f;font-family:Arial,r'Helvetica Neue',sans-serif;">
 <table width="100%" cellpadding="0" cellspacing="0" style="background:#0a0a0f;padding:32px 16px;">
 <tr><td align="center">
 
@@ -115,8 +115,8 @@ def _send(to_email: str, subject: str, html: str, plain: str) -> bool:
         msg.to = to_email
         msg.subject = subject
         msg.content = [
-            Content('text/plain', plain),
-            Content('text/html', html),
+            Content(r'text/plain', plain),
+            Content(r'text/html', html),
         ]
         sg = SendGridAPIClient(SENDGRID_API_KEY)
         r = sg.send(msg)
@@ -127,10 +127,10 @@ def _send(to_email: str, subject: str, html: str, plain: str) -> bool:
 
 
 def send_otp_email(to_email: str, otp: str, name: str = '') -> bool:
-    display = name or to_email.split('@')[0]
+    display = name or to_email.split(r'@')[0]
     digits = ''.join([
-        f'<td style="width:48px;height:64px;background:#0f0f1a;border:2px solid #7c3aed;border-radius:12px;text-align:center;vertical-align:middle;font-size:32px;font-weight:900;color:#ffffff;font-family:monospace;letter-spacing:0;">{d}</td>'
-        f'<td style="width:8px;"></td>'
+        fr'<td style="width:48px;height:64px;background:#0f0f1a;border:2px solid #7c3aed;border-radius:12px;text-align:center;vertical-align:middle;font-size:32px;font-weight:900;color:#ffffff;font-family:monospace;letter-spacing:0;">{d}</td>'
+        fr'<td style="width:8px;"></td>'
         for d in otp
     ])
 
@@ -183,10 +183,10 @@ https://black-message.vercel.app
 """
 
     html, plain = _template(content, plain)
-    return _send(to_email, 'Kode OTP BlackMess Anda', html, plain)
+    return _send(to_email, r'Kode OTP BlackMess Anda', html, plain)
 
 
-def send_invite_email(to_email: str, from_name: str, invite_link: str, workspace: str = 'BlackMess') -> bool:
+def send_invite_email(to_email: str, from_name: str, invite_link: str, workspace: str = r'BlackMess') -> bool:
     initial = workspace[0].upper()
     content = f"""
 <h2 style="color:#ffffff;font-size:22px;font-weight:800;margin:0 0 8px;text-align:center;">Undangan Bergabung 🎉</h2>
@@ -271,4 +271,4 @@ https://black-message.vercel.app
 """
 
     html, plain = _template(content, plain)
-    return _send(to_email, f'{from_name} mengundang Anda ke {workspace} di BlackMess', html, plain)
+    return _send(to_email, fr'{from_name} mengundang Anda ke {workspace} di BlackMess', html, plain)

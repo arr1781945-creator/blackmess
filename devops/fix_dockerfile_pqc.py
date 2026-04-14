@@ -1,10 +1,10 @@
-with open('Dockerfile', 'r') as f:
+with open(r'Dockerfile', 'r') as f:
     c = f.read()
 
 # Ganti FROM biasa ke image yang udah ada liboqs
 c = c.replace(
-    'FROM python:3.12-slim',
-    'FROM openquantumsafe/liboqs-python:latest'
+    r'FROM python:3.12-slim',
+    r'FROM openquantumsafe/liboqs-python:latest'
 )
 
 # Hapus build liboqs manual karena udah ada di base image
@@ -20,7 +20,7 @@ RUN git clone --depth 1 https://github.com/open-quantum-safe/liboqs.git /tmp/lib
 
 c = c.replace(old, "# liboqs already in base image")
 
-with open('Dockerfile', 'w') as f:
+with open(r'Dockerfile', 'w') as f:
     f.write(c)
 
 print("Done!")

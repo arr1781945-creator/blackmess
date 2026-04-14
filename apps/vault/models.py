@@ -132,7 +132,7 @@ class HardwareKeyRegistry(models.Model):
     )
     slot = models.PositiveSmallIntegerField(choices=SLOT_CHOICES)
     key_type = models.CharField(max_length=16, choices=KEY_TYPE_CHOICES)
-    label = models.CharField(max_length=64, help_text="User-visible label e.g. 'YubiKey 5C NFC'")
+    label = models.CharField(max_length=64, help_text="User-visible label e.g. r'YubiKey 5C NFC'")
 
     # FIDO2 credential data (encrypted)
     credential_id_enc = models.TextField(help_text="Encrypted FIDO2 credential ID")
@@ -281,22 +281,22 @@ class AccessSession(models.Model):
 class KeyRotationLog(models.Model):
     """Track key rotation history."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='key_rotations')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='key_rotations')
     key_type = models.CharField(max_length=50)
     old_key_fingerprint = models.CharField(max_length=64)
     new_key_fingerprint = models.CharField(max_length=64)
-    reason = models.CharField(max_length=100, default='scheduled')
-    rotated_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True, related_name='rotations_performed')
+    reason = models.CharField(max_length=100, default=r'scheduled')
+    rotated_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True, related_name='rotations_performed')
     rotated_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'vault_key_rotation_log'
+        db_table = r'vault_key_rotation_log'
 
 
 class KeyEscrow(models.Model):
     """Encrypted key backup for compliance."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='key_escrows')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='key_escrows')
     key_type = models.CharField(max_length=50)
     encrypted_key_b64 = models.TextField()
     escrow_nonce_b64 = models.TextField()
@@ -306,7 +306,7 @@ class KeyEscrow(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'vault_key_escrow'
+        db_table = r'vault_key_escrow'
 
 
 class MasterKeyVersion(models.Model):
@@ -314,20 +314,20 @@ class MasterKeyVersion(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     version = models.PositiveIntegerField(unique=True)
     key_fingerprint = models.CharField(max_length=64)
-    algorithm = models.CharField(max_length=50, default='AES-256-GCM')
+    algorithm = models.CharField(max_length=50, default=r'AES-256-GCM')
     is_active = models.BooleanField(default=False)
     activated_at = models.DateTimeField(null=True, blank=True)
     retired_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'vault_master_key_version'
+        db_table = r'vault_master_key_version'
 
 
 class KeyAccessLog(models.Model):
     """Audit log for key access."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='key_access_logs')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='key_access_logs')
     key_type = models.CharField(max_length=50)
     action = models.CharField(max_length=50)
     ip_address = models.GenericIPAddressField(null=True)
@@ -335,21 +335,21 @@ class KeyAccessLog(models.Model):
     accessed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'vault_key_access_log'
+        db_table = r'vault_key_access_log'
 
 
 class KeyDerivationParams(models.Model):
     """HKDF derivation parameters per channel."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    channel = models.OneToOneField('workspace.Channel', on_delete=models.CASCADE, related_name='key_params')
+    channel = models.OneToOneField(r'workspace.Channel', on_delete=models.CASCADE, related_name='key_params')
     salt_b64 = models.TextField()
     info_b64 = models.TextField()
-    algorithm = models.CharField(max_length=50, default='HKDF-SHA512')
+    algorithm = models.CharField(max_length=50, default=r'HKDF-SHA512')
     created_at = models.DateTimeField(auto_now_add=True)
     rotated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'vault_key_derivation_params'
+        db_table = r'vault_key_derivation_params'
 
 
 # ─── Digital Signature ───────────────────────────────────────────────────────
@@ -360,16 +360,16 @@ class DocumentSignature(models.Model):
     document_hash = models.CharField(max_length=64)
     document_name = models.CharField(max_length=255)
     document_cid = models.TextField(blank=True)
-    signer = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='signatures')
+    signer = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='signatures')
     signature_b64 = models.TextField()
-    signature_algorithm = models.CharField(max_length=50, default='Dilithium3')
+    signature_algorithm = models.CharField(max_length=50, default=r'Dilithium3')
     public_key_fingerprint = models.CharField(max_length=64)
     is_valid = models.BooleanField(default=True)
     revoked_at = models.DateTimeField(null=True, blank=True)
     signed_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'vault_document_signature'
+        db_table = r'vault_document_signature'
 
 
 class MultiPartySignature(models.Model):
@@ -377,16 +377,16 @@ class MultiPartySignature(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     document_hash = models.CharField(max_length=64)
     document_name = models.CharField(max_length=255)
-    required_signers = models.ManyToManyField('users.BankUser', related_name='pending_signatures')
-    completed_signatures = models.ManyToManyField(DocumentSignature, related_name='multi_party')
+    required_signers = models.ManyToManyField(r'users.BankUser', related_name='pending_signatures')
+    completed_signatures = models.ManyToManyField(DocumentSignature, related_name=r'multi_party')
     is_complete = models.BooleanField(default=False)
     completed_at = models.DateTimeField(null=True, blank=True)
     deadline = models.DateTimeField(null=True, blank=True)
-    created_by = models.ForeignKey('users.BankUser', on_delete=models.CASCADE)
+    created_by = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'vault_multi_party_signature'
+        db_table = r'vault_multi_party_signature'
 
 
 class SWIFTMessage(models.Model):
@@ -400,14 +400,14 @@ class SWIFTMessage(models.Model):
     reference = models.CharField(max_length=50, unique=True)
     encrypted_payload_b64 = models.TextField()
     status = models.CharField(max_length=20, choices=[
-        ('pending','Pending'), ('sent','Sent'),
-        ('acknowledged','Acknowledged'), ('rejected','Rejected'),
-    ], default='pending')
+        (r'pending','Pending'), ('sent','Sent'),
+        (r'acknowledged','Acknowledged'), ('rejected','Rejected'),
+    ], default=r'pending')
     created_at = models.DateTimeField(auto_now_add=True)
     processed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = 'vault_swift_message'
+        db_table = r'vault_swift_message'
 
 
 class HSMKeySlot(models.Model):
@@ -416,11 +416,11 @@ class HSMKeySlot(models.Model):
     slot_id = models.PositiveIntegerField(unique=True)
     label = models.CharField(max_length=100)
     key_type = models.CharField(max_length=50, choices=[
-        ('rsa_4096','RSA-4096'),
-        ('ecdsa_p384','ECDSA-P384'),
-        ('aes_256','AES-256'),
-        ('kyber_1024','Kyber-1024'),
-        ('ml_dsa_65','Dilithium3'),
+        (r'rsa_4096','RSA-4096'),
+        (r'ecdsa_p384','ECDSA-P384'),
+        (r'aes_256','AES-256'),
+        (r'kyber_1024','Kyber-1024'),
+        (r'ml_dsa_65','Dilithium3'),
     ])
     key_fingerprint = models.CharField(max_length=64, blank=True)
     is_active = models.BooleanField(default=True)
@@ -430,14 +430,14 @@ class HSMKeySlot(models.Model):
     expires_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = 'vault_hsm_key_slot'
+        db_table = r'vault_hsm_key_slot'
 
 
 class SecureEnvelope(models.Model):
     """Encrypted envelope untuk dokumen sensitif."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sender = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='sent_envelopes')
-    recipient = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='received_envelopes')
+    sender = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='sent_envelopes')
+    recipient = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='received_envelopes')
     subject_encrypted_b64 = models.TextField()
     content_cid = models.TextField()
     kyber_ciphertext_b64 = models.TextField()
@@ -451,7 +451,7 @@ class SecureEnvelope(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'vault_secure_envelope'
+        db_table = r'vault_secure_envelope'
 
 
 class CertificateAuthority(models.Model):
@@ -464,18 +464,18 @@ class CertificateAuthority(models.Model):
     is_active = models.BooleanField(default=True)
     valid_from = models.DateTimeField()
     valid_until = models.DateTimeField()
-    issued_by = models.ForeignKey('self', on_delete=models.SET_NULL, null=True)
+    issued_by = models.ForeignKey(r'self', on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'vault_certificate_authority'
+        db_table = r'vault_certificate_authority'
 
 
 class IssuedCertificate(models.Model):
     """Certificates issued to users/services."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    ca = models.ForeignKey(CertificateAuthority, on_delete=models.CASCADE, related_name='issued_certs')
-    user = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True, related_name='certificates')
+    ca = models.ForeignKey(CertificateAuthority, on_delete=models.CASCADE, related_name=r'issued_certs')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True, related_name='certificates')
     serial_number = models.CharField(max_length=50, unique=True)
     subject = models.CharField(max_length=255)
     certificate_pem = models.TextField()
@@ -488,7 +488,7 @@ class IssuedCertificate(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'vault_issued_certificate'
+        db_table = r'vault_issued_certificate'
 
 
 class TokenVault(models.Model):
@@ -496,47 +496,47 @@ class TokenVault(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     token = models.CharField(max_length=64, unique=True)
     data_type = models.CharField(max_length=50, choices=[
-        ('card_number','Card Number'),
-        ('account_number','Account Number'),
-        ('swift_bic','SWIFT BIC'),
-        ('iban','IBAN'),
-        ('ssn','SSN/NIK'),
+        (r'card_number','Card Number'),
+        (r'account_number','Account Number'),
+        (r'swift_bic','SWIFT BIC'),
+        (r'iban','IBAN'),
+        (r'ssn','SSN/NIK'),
     ])
     encrypted_value_b64 = models.TextField()
     nonce_b64 = models.TextField()
     auth_tag_b64 = models.TextField()
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='tokens')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='tokens')
     usage_count = models.PositiveIntegerField(default=0)
     last_used = models.DateTimeField(null=True, blank=True)
     expires_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'vault_token'
+        db_table = r'vault_token'
 
 
 class SecureNotepad(models.Model):
     """Encrypted secure notepad per user."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='secure_notes')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='secure_notes')
     title_encrypted_b64 = models.TextField()
     content_encrypted_b64 = models.TextField()
     nonce_b64 = models.TextField()
     auth_tag_b64 = models.TextField()
     category = models.CharField(max_length=50, choices=[
-        ('credentials','Credentials'),
-        ('meeting_notes','Meeting Notes'),
-        ('deal_notes','Deal Notes'),
-        ('personal','Personal'),
-        ('compliance','Compliance'),
-    ], default='personal')
+        (r'credentials','Credentials'),
+        (r'meeting_notes','Meeting Notes'),
+        (r'deal_notes','Deal Notes'),
+        (r'personal','Personal'),
+        (r'compliance','Compliance'),
+    ], default=r'personal')
     is_pinned = models.BooleanField(default=False)
     destroy_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'vault_secure_notepad'
+        db_table = r'vault_secure_notepad'
 
 
 class VaultAccessPolicy(models.Model):
@@ -544,12 +544,12 @@ class VaultAccessPolicy(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=100)
     resource_type = models.CharField(max_length=50, choices=[
-        ('kyc','KYC Records'),
-        ('blob','Blob Store'),
-        ('signature','Digital Signatures'),
-        ('certificate','Certificates'),
-        ('token','Token Vault'),
-        ('notepad','Secure Notepad'),
+        (r'kyc','KYC Records'),
+        (r'blob','Blob Store'),
+        (r'signature','Digital Signatures'),
+        (r'certificate','Certificates'),
+        (r'token','Token Vault'),
+        (r'notepad','Secure Notepad'),
     ])
     allowed_roles = models.JSONField(default=list)
     min_clearance = models.PositiveSmallIntegerField(default=1)
@@ -557,11 +557,11 @@ class VaultAccessPolicy(models.Model):
     requires_hardware_key = models.BooleanField(default=False)
     time_restrictions = models.JSONField(default=dict)
     ip_restrictions = models.JSONField(default=list)
-    created_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True)
+    created_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'vault_access_policy'
+        db_table = r'vault_access_policy'
 
 
 class DisasterRecoveryPlan(models.Model):
@@ -569,10 +569,10 @@ class DisasterRecoveryPlan(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     plan_name = models.CharField(max_length=100)
     plan_type = models.CharField(max_length=50, choices=[
-        ('bcp','Business Continuity Plan'),
-        ('drp','Disaster Recovery Plan'),
-        ('irp','Incident Response Plan'),
-        ('crisis','Crisis Management'),
+        (r'bcp','Business Continuity Plan'),
+        (r'drp','Disaster Recovery Plan'),
+        (r'irp','Incident Response Plan'),
+        (r'crisis','Crisis Management'),
     ])
     rto_minutes = models.PositiveIntegerField(default=60)
     rpo_minutes = models.PositiveIntegerField(default=30)
@@ -581,19 +581,19 @@ class DisasterRecoveryPlan(models.Model):
     last_tested = models.DateTimeField(null=True, blank=True)
     next_test = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
-    approved_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True)
+    approved_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'vault_disaster_recovery'
+        db_table = r'vault_disaster_recovery'
 
 
 class SecureSharing(models.Model):
     """Secure time-limited file sharing."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    shared_by = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='shared_items')
-    shared_with = models.ManyToManyField('users.BankUser', related_name='received_shares')
+    shared_by = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='shared_items')
+    shared_with = models.ManyToManyField(r'users.BankUser', related_name='received_shares')
     resource_type = models.CharField(max_length=50)
     resource_id = models.CharField(max_length=50)
     access_token = models.CharField(max_length=64, unique=True)
@@ -605,19 +605,19 @@ class SecureSharing(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'vault_secure_sharing'
+        db_table = r'vault_secure_sharing'
 
 
 class DigitalAssetCustody(models.Model):
     """Digital asset custody — crypto/CBDC."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='digital_assets')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='digital_assets')
     asset_type = models.CharField(max_length=50, choices=[
-        ('bitcoin','Bitcoin'),
-        ('ethereum','Ethereum'),
-        ('cbdc','CBDC'),
-        ('stablecoin','Stablecoin'),
-        ('tokenized_asset','Tokenized Asset'),
+        (r'bitcoin','Bitcoin'),
+        (r'ethereum','Ethereum'),
+        (r'cbdc','CBDC'),
+        (r'stablecoin','Stablecoin'),
+        (r'tokenized_asset','Tokenized Asset'),
     ])
     wallet_address_encrypted_b64 = models.TextField()
     private_key_encrypted_b64 = models.TextField()
@@ -630,28 +630,28 @@ class DigitalAssetCustody(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'vault_digital_asset'
+        db_table = r'vault_digital_asset'
 
 
 class CBDCTransaction(models.Model):
     """Central Bank Digital Currency transactions."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    sender = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='cbdc_sent')
-    receiver = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='cbdc_received')
+    sender = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='cbdc_sent')
+    receiver = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='cbdc_received')
     amount = models.DecimalField(max_digits=30, decimal_places=8)
-    currency = models.CharField(max_length=10, default='e-IDR')
+    currency = models.CharField(max_length=10, default=r'e-IDR')
     transaction_hash = models.CharField(max_length=64, unique=True)
     block_number = models.BigIntegerField(null=True)
     smart_contract_address = models.CharField(max_length=100, blank=True)
     status = models.CharField(max_length=20, choices=[
-        ('pending','Pending'), ('confirmed','Confirmed'),
-        ('failed','Failed'), ('reversed','Reversed'),
-    ], default='pending')
+        (r'pending','Pending'), ('confirmed','Confirmed'),
+        (r'failed','Failed'), ('reversed','Reversed'),
+    ], default=r'pending')
     created_at = models.DateTimeField(auto_now_add=True)
     confirmed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = 'vault_cbdc_transaction'
+        db_table = r'vault_cbdc_transaction'
 
 
 class SmartContractAudit(models.Model):
@@ -660,32 +660,32 @@ class SmartContractAudit(models.Model):
     contract_address = models.CharField(max_length=100)
     contract_name = models.CharField(max_length=100)
     audit_type = models.CharField(max_length=50, choices=[
-        ('security','Security Audit'),
-        ('compliance','Compliance Audit'),
-        ('functional','Functional Audit'),
+        (r'security','Security Audit'),
+        (r'compliance','Compliance Audit'),
+        (r'functional','Functional Audit'),
     ])
     vulnerabilities_found = models.PositiveIntegerField(default=0)
     critical_issues = models.PositiveIntegerField(default=0)
     audit_report_cid = models.TextField(blank=True)
-    audited_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True)
+    audited_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True)
     passed = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'vault_smart_contract_audit'
+        db_table = r'vault_smart_contract_audit'
 
 
 class QuantumKeyDistribution(models.Model):
     """QKD — Quantum Key Distribution sessions."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    initiator = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='qkd_initiated')
-    responder = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='qkd_responded')
+    initiator = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='qkd_initiated')
+    responder = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='qkd_responded')
     protocol = models.CharField(max_length=50, choices=[
-        ('bb84','BB84'),
-        ('e91','E91'),
-        ('b92','B92'),
-        ('sarg04','SARG04'),
-    ], default='bb84')
+        (r'bb84','BB84'),
+        (r'e91','E91'),
+        (r'b92','B92'),
+        (r'sarg04','SARG04'),
+    ], default=r'bb84')
     key_length_bits = models.PositiveIntegerField(default=256)
     qber = models.FloatField(default=0.0)
     is_secure = models.BooleanField(default=True)
@@ -694,36 +694,36 @@ class QuantumKeyDistribution(models.Model):
     expires_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = 'vault_quantum_key_distribution'
+        db_table = r'vault_quantum_key_distribution'
 
 
 class PostQuantumMigration(models.Model):
     """Track PQC migration status per user/service."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='pqc_migrations')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='pqc_migrations')
     migration_type = models.CharField(max_length=50, choices=[
-        ('key_generation','Key Generation'),
-        ('key_exchange','Key Exchange'),
-        ('signature','Signature'),
-        ('encryption','Encryption'),
+        (r'key_generation','Key Generation'),
+        (r'key_exchange','Key Exchange'),
+        (r'signature','Signature'),
+        (r'encryption','Encryption'),
     ])
     from_algorithm = models.CharField(max_length=50)
     to_algorithm = models.CharField(max_length=50)
     status = models.CharField(max_length=20, choices=[
-        ('pending','Pending'), ('in_progress','In Progress'),
-        ('completed','Completed'), ('failed','Failed'),
-    ], default='pending')
+        (r'pending','Pending'), ('in_progress','In Progress'),
+        (r'completed','Completed'), ('failed','Failed'),
+    ], default=r'pending')
     completed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'vault_pqc_migration'
+        db_table = r'vault_pqc_migration'
 
 
 class PasswordVault(models.Model):
     """Encrypted password vault."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='passwords')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='passwords')
     service_name = models.CharField(max_length=100)
     username_encrypted_b64 = models.TextField()
     password_encrypted_b64 = models.TextField()
@@ -732,135 +732,135 @@ class PasswordVault(models.Model):
     auth_tag_b64 = models.TextField()
     notes_encrypted_b64 = models.TextField(blank=True)
     category = models.CharField(max_length=50, choices=[
-        ('work','Work'),
-        ('personal','Personal'),
-        ('social','Social'),
-        ('finance','Finance'),
-        ('other','Other'),
-    ], default='work')
+        (r'work','Work'),
+        (r'personal','Personal'),
+        (r'social','Social'),
+        (r'finance','Finance'),
+        (r'other','Other'),
+    ], default=r'work')
     last_used = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'vault_password'
+        db_table = r'vault_password'
 
 
 class SSHKey(models.Model):
     """Encrypted SSH keys."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='ssh_keys')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='ssh_keys')
     name = models.CharField(max_length=100)
     public_key = models.TextField()
     private_key_encrypted_b64 = models.TextField()
     nonce_b64 = models.TextField()
     auth_tag_b64 = models.TextField()
     key_type = models.CharField(max_length=20, choices=[
-        ('rsa','RSA'),
-        ('ed25519','Ed25519'),
-        ('ecdsa','ECDSA'),
-    ], default='ed25519')
+        (r'rsa','RSA'),
+        (r'ed25519','Ed25519'),
+        (r'ecdsa','ECDSA'),
+    ], default=r'ed25519')
     passphrase_hint = models.CharField(max_length=100, blank=True)
     servers = models.JSONField(default=list)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'vault_ssh_key'
+        db_table = r'vault_ssh_key'
 
 
 class APIKeyVault(models.Model):
     """Encrypted API keys."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='api_keys_vault')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='api_keys_vault')
     service = models.CharField(max_length=100)
     key_name = models.CharField(max_length=100)
     api_key_encrypted_b64 = models.TextField()
     nonce_b64 = models.TextField()
     auth_tag_b64 = models.TextField()
     environment = models.CharField(max_length=20, choices=[
-        ('production','Production'),
-        ('staging','Staging'),
-        ('development','Development'),
-    ], default='development')
+        (r'production','Production'),
+        (r'staging','Staging'),
+        (r'development','Development'),
+    ], default=r'development')
     expires_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'vault_api_key'
+        db_table = r'vault_api_key'
 
 
 class EnvironmentSecret(models.Model):
     """Team environment secrets."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='env_secrets')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='env_secrets')
     key_name = models.CharField(max_length=100)
     value_encrypted_b64 = models.TextField()
     nonce_b64 = models.TextField()
     auth_tag_b64 = models.TextField()
     environment = models.CharField(max_length=20, choices=[
-        ('production','Production'),
-        ('staging','Staging'),
-        ('development','Development'),
+        (r'production','Production'),
+        (r'staging','Staging'),
+        (r'development','Development'),
     ])
     description = models.TextField(blank=True)
-    created_by = models.ForeignKey('users.BankUser', on_delete=models.CASCADE)
+    created_by = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'vault_env_secret'
-        unique_together = ['workspace', 'key_name', 'environment']
+        db_table = r'vault_env_secret'
+        unique_together = [r'workspace', 'key_name', 'environment']
 
 
 class SharedSecret(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='shared_secrets')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='shared_secrets')
     name = models.CharField(max_length=100)
     value_encrypted_b64 = models.TextField()
     nonce_b64 = models.TextField()
     auth_tag_b64 = models.TextField()
-    shared_with = models.ManyToManyField('users.BankUser', related_name='shared_secrets_access', blank=True)
-    created_by = models.ForeignKey('users.BankUser', on_delete=models.CASCADE)
+    shared_with = models.ManyToManyField(r'users.BankUser', related_name='shared_secrets_access', blank=True)
+    created_by = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE)
     expires_at = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'vault_shared_secret'
+    class Meta: db_table = r'vault_shared_secret'
 
 class VaultAuditLog(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='vault_audit')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='vault_audit')
     action = models.CharField(max_length=50)
     resource_type = models.CharField(max_length=50)
     resource_id = models.CharField(max_length=50)
     ip_address = models.GenericIPAddressField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'vault_audit'
+    class Meta: db_table = r'vault_audit'
 
 class WorkspaceBackup(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='backups')
-    backup_type = models.CharField(max_length=20, choices=[('full','Full'),('incremental','Incremental'),('messages','Messages Only'),('files','Files Only')])
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='backups')
+    backup_type = models.CharField(max_length=20, choices=[(r'full','Full'),('incremental','Incremental'),('messages','Messages Only'),('files','Files Only')])
     size_bytes = models.BigIntegerField(default=0)
     storage_cid = models.TextField(blank=True)
-    status = models.CharField(max_length=20, default='pending')
-    created_by = models.ForeignKey('users.BankUser', on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, default=r'pending')
+    created_by = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True)
-    class Meta: db_table = 'vault_workspace_backup'
+    class Meta: db_table = r'vault_workspace_backup'
 
 class TwoFactorBackupCode(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='backup_codes')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='backup_codes')
     code_hash = models.CharField(max_length=64)
     is_used = models.BooleanField(default=False)
     used_at = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'vault_2fa_backup_code'
+    class Meta: db_table = r'vault_2fa_backup_code'
 
 class TrustedDevice(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='vault_trusted_devices')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='vault_trusted_devices')
     device_name = models.CharField(max_length=100)
     device_token_hash = models.CharField(max_length=64, unique=True)
     last_used = models.DateTimeField(auto_now=True)
     expires_at = models.DateTimeField()
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'vault_trusted_device'
+    class Meta: db_table = r'vault_trusted_device'

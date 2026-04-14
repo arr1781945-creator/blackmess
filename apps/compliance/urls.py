@@ -7,12 +7,12 @@ from .views import (
 )
 
 router = DefaultRouter()
-router.register(r'ojk-incidents', OJKIncidentViewSet, basename='ojk-incident')
-router.register(r'info-barriers', InformationBarrierViewSet, basename='info-barrier')
-router.register(r'remote-wipe', RemoteWipeViewSet, basename='remote-wipe')
-router.register(r'secure-links', SecureFileLinkViewSet, basename='secure-link')
-router.register(r'dlp-rules', DLPRuleViewSet, basename='dlp-rule')
-router.register(r'helpdesk', HelpdeskTicketViewSet, basename='helpdesk')
-router.register(r'institution-badges', InstitutionBadgeViewSet, basename='institution-badge')
+router.register(rr'ojk-incidents', OJKIncidentViewSet, basename='ojk-incident')
+router.register(rr'info-barriers', InformationBarrierViewSet, basename='info-barrier')
+router.register(rr'remote-wipe', RemoteWipeViewSet, basename='remote-wipe')
+router.register(rr'secure-links', SecureFileLinkViewSet, basename='secure-link')
+router.register(rr'dlp-rules', DLPRuleViewSet, basename='dlp-rule')
+router.register(rr'helpdesk', HelpdeskTicketViewSet, basename='helpdesk')
+router.register(rr'institution-badges', InstitutionBadgeViewSet, basename='institution-badge')
 
 urlpatterns = router.urls

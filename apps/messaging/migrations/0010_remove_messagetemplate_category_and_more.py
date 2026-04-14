@@ -7,27 +7,27 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('messaging', '0009_remove_messagetemplate_is_shared_and_more'),
-        ('workspace', '0017_apikey_appversion_geolocation_knowledgetag_and_more'),
+        (r'messaging', '0009_remove_messagetemplate_is_shared_and_more'),
+        (r'workspace', '0017_apikey_appversion_geolocation_knowledgetag_and_more'),
     ]
 
     operations = [
         migrations.RemoveField(
-            model_name='messagetemplate',
-            name='category',
+            model_name=r'messagetemplate',
+            name=r'category',
         ),
         migrations.AddField(
-            model_name='messagetemplate',
-            name='is_shared',
+            model_name=r'messagetemplate',
+            name=r'is_shared',
             field=models.BooleanField(default=False),
         ),
         migrations.AlterField(
-            model_name='messagetemplate',
-            name='workspace',
-            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to='workspace.workspace'),
+            model_name=r'messagetemplate',
+            name=r'workspace',
+            field=models.ForeignKey(on_delete=django.db.models.deletion.CASCADE, to=r'workspace.workspace'),
         ),
         migrations.AlterModelTable(
-            name='messagetemplate',
-            table='messaging_template',
+            name=r'messagetemplate',
+            table=r'messaging_template',
         ),
     ]

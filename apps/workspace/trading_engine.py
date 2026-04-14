@@ -9,6 +9,7 @@ import logging
 import time
 from contextlib import contextmanager
 from django.db import transaction
+from django.db.models import Sum          # FIX #1: import Sum dari models, bukan dari transaction
 from django.core.cache import cache
 from django.utils import timezone
 from decimal import Decimal
@@ -21,12 +22,17 @@ LOCK_RETRY_DELAY = 0.1  # seconds
 
 
 @contextmanager
-def trading_desk_lock(desk_id: str, user_id: str, timeout=LOCK_TTL):
+def trading_desk_lock(desk_id: str, timeout=LOCK_TTL):
     """
     Distributed Redis lock untuk trading desk.
-    Mencegah race condition pada concurrent orders.
+    Mencegah race condition pada concurrent orders dari SEMUA user.
+
+    FIX #2: Lock key cukup per desk_id saja.
+    Lock per (desk_id, user_id) sebelumnya hanya mencegah satu user
+    submit order ganda — tidak mencegah dua user berbeda concurrent
+    di desk yang sama, yang justru skenario race condition utama.
     """
-    lock_key = f"trading_lock:{desk_id}:{user_id}"
+    lock_key = f"trading_lock:{desk_id}"          # FIX #2: hapus :user_id
     lock_value = str(uuid.uuid4())
 
     acquired = False
@@ -53,8 +59,16 @@ def generate_idempotency_key(user_id: str, desk_id: str, amount: str, instrument
     """
     Generate idempotency key untuk prevent duplicate orders.
     Same inputs = same key = duplicate detected.
+
+    FIX #3: Ganti granularitas menit (%Y%m%d%H%M) ke microsecond.
+    Granularitas menit sebelumnya menyebabkan dua order valid yang identik
+    dalam satu menit yang sama ditolak sebagai duplikat (false positive).
+    Caller yang butuh idempotency eksplisit harus supply key sendiri.
     """
-    payload = f"{user_id}:{desk_id}:{amount}:{instrument}:{timezone.now().strftime('%Y%m%d%H%M')}"
+    payload = (
+        f"{user_id}:{desk_id}:{amount}:{instrument}:"
+        f"{timezone.now().strftime(r'%Y%m%d%H%M%S%f')}"  # FIX #3: tambah %S%f (detik + microsecond)
+    )
     return hashlib.sha256(payload.encode()).hexdigest()
 
 
@@ -71,7 +85,7 @@ def process_trading_order(
 ) -> dict:
     """
     Process trading order dengan:
-    1. Distributed lock (Redis)
+    1. Distributed lock (Redis) — per desk, bukan per user+desk
     2. Idempotency check
     3. Pessimistic DB lock (SELECT FOR UPDATE)
     4. Atomic transaction
@@ -87,7 +101,7 @@ def process_trading_order(
             logger.info("Duplicate order detected: %s", idempotency_key)
             return {"status": "duplicate", "existing_order": existing}
 
-    with trading_desk_lock(desk_id, user_id):
+    with trading_desk_lock(desk_id):              # FIX #2: tidak perlu pass user_id
         # Pessimistic lock on trading desk
         try:
             desk = TradingDesk.objects.select_for_update(nowait=True).get(
@@ -106,10 +120,12 @@ def process_trading_order(
             today_volume = TransactionMonitor.objects.filter(
                 created_at__date=timezone.now().date(),
                 metadata__desk_id=str(desk_id),
-            ).aggregate(total=transaction.Sum('amount'))['total'] or Decimal('0')
+            ).aggregate(total=Sum(r'amount'))['total'] or Decimal('0')   # FIX #1: Sum dari models
 
             if today_volume + amount > desk.daily_var_limit:
-                raise ValueError(f"Daily VaR limit exceeded: {today_volume + amount} > {desk.daily_var_limit}")
+                raise ValueError(
+                    f"Daily VaR limit exceeded: {today_volume + amount} > {desk.daily_var_limit}"
+                )
 
         # Create transaction record
         order_id = str(uuid.uuid4())
@@ -118,29 +134,31 @@ def process_trading_order(
             transaction_id=order_id,
             amount=amount,
             currency=currency,
-            transaction_type='payment',
-            status='pending',
+            transaction_type=r'payment',
+            status=r'pending',
             risk_score=_calculate_risk_score(amount, instrument, direction),
             metadata={
-                'desk_id': str(desk_id),
-                'instrument': instrument,
-                'direction': direction,
-                'price': str(price),
-                'idempotency_key': idempotency_key,
+                r'desk_id': str(desk_id),
+                r'instrument': instrument,
+                r'direction': direction,
+                r'price': str(price),
+                r'idempotency_key': idempotency_key,
             }
         )
 
         # Cache idempotency key — 24 hours
         if idempotency_key:
             cache.set(f"order_idem:{idempotency_key}", {
-                'order_id': order_id,
-                'status': 'created',
-                'amount': str(amount),
-                'instrument': instrument,
+                r'order_id': order_id,
+                r'status': 'created',
+                r'amount': str(amount),
+                r'instrument': instrument,
             }, timeout=86400)
 
-        logger.info("Trading order created: %s desk=%s instrument=%s amount=%s",
-            order_id, desk_id, instrument, amount)
+        logger.info(
+            "Trading order created: %s desk=%s instrument=%s amount=%s",
+            order_id, desk_id, instrument, amount,
+        )
 
         return {
             "status": "created",
@@ -157,10 +175,10 @@ def process_trading_order(
 def _calculate_risk_score(amount: Decimal, instrument: str, direction: str) -> float:
     """Simple risk scoring — replace with ML model in production."""
     score = 0.0
-    if amount > Decimal('1000000000'):  # > 1B IDR
+    if amount > Decimal(r'1000000000'):  # > 1B IDR
         score += 0.5
-    if instrument in ['options', 'futures', 'derivatives']:
+    if instrument in [r'options', 'futures', 'derivatives']:
         score += 0.3
-    if direction == 'short':
+    if direction == r'short':
         score += 0.2
     return min(score, 1.0)

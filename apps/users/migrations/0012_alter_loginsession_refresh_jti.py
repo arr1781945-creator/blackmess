@@ -6,13 +6,13 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('users', '0011_alter_invitetoken_expires_at_and_more'),
+        (r'users', '0011_alter_invitetoken_expires_at_and_more'),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='loginsession',
-            name='refresh_jti',
+            model_name=r'loginsession',
+            name=r'refresh_jti',
             field=models.CharField(blank=True, db_index=True, default='', max_length=255, unique=True),
         ),
     ]

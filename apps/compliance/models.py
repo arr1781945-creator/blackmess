@@ -219,13 +219,13 @@ class SystemHealthLog(models.Model):
     """System health monitoring log."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     service = models.CharField(max_length=50)
-    status = models.CharField(max_length=20, choices=[('healthy','Healthy'),('degraded','Degraded'),('down','Down')])
+    status = models.CharField(max_length=20, choices=[(r'healthy','Healthy'),('degraded','Degraded'),('down','Down')])
     response_time_ms = models.PositiveIntegerField(default=0)
     details = models.JSONField(default=dict)
     checked_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_system_health'
+        db_table = r'compliance_system_health'
 
 
 class ThreatIntelligence(models.Model):
@@ -233,7 +233,7 @@ class ThreatIntelligence(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     threat_type = models.CharField(max_length=50)
     indicator = models.CharField(max_length=255)
-    severity = models.CharField(max_length=20, choices=[('low','Low'),('medium','Medium'),('high','High'),('critical','Critical')])
+    severity = models.CharField(max_length=20, choices=[(r'low','Low'),('medium','Medium'),('high','High'),('critical','Critical')])
     description = models.TextField(blank=True)
     is_active = models.BooleanField(default=True)
     source = models.CharField(max_length=100, blank=True)
@@ -241,7 +241,7 @@ class ThreatIntelligence(models.Model):
     expires_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = 'compliance_threat_intel'
+        db_table = r'compliance_threat_intel'
 
 
 # ─── Transaction Monitoring ───────────────────────────────────────────────────
@@ -249,14 +249,14 @@ class ThreatIntelligence(models.Model):
 class TransactionMonitor(models.Model):
     """Real-time transaction monitoring."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='transactions')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='transactions')
     transaction_id = models.CharField(max_length=100, unique=True)
     amount = models.DecimalField(max_digits=20, decimal_places=8)
-    currency = models.CharField(max_length=10, default='IDR')
+    currency = models.CharField(max_length=10, default=r'IDR')
     transaction_type = models.CharField(max_length=50, choices=[
-        ('transfer','Transfer'), ('payment','Payment'),
-        ('withdrawal','Withdrawal'), ('deposit','Deposit'),
-        ('fx','Foreign Exchange'), ('swift','SWIFT'),
+        (r'transfer','Transfer'), ('payment','Payment'),
+        (r'withdrawal','Withdrawal'), ('deposit','Deposit'),
+        (r'fx','Foreign Exchange'), ('swift','SWIFT'),
     ])
     sender_account = models.CharField(max_length=100, blank=True)
     receiver_account = models.CharField(max_length=100, blank=True)
@@ -264,75 +264,75 @@ class TransactionMonitor(models.Model):
     is_flagged = models.BooleanField(default=False)
     flag_reason = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=[
-        ('pending','Pending'), ('cleared','Cleared'),
-        ('flagged','Flagged'), ('blocked','Blocked'),
-    ], default='pending')
+        (r'pending','Pending'), ('cleared','Cleared'),
+        (r'flagged','Flagged'), ('blocked','Blocked'),
+    ], default=r'pending')
     metadata = models.JSONField(default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'compliance_transaction_monitor'
+        db_table = r'compliance_transaction_monitor'
         indexes = [
-            models.Index(fields=['user', 'created_at']),
-            models.Index(fields=['is_flagged', 'status']),
-            models.Index(fields=['risk_score']),
+            models.Index(fields=[r'user', 'created_at']),
+            models.Index(fields=[r'is_flagged', 'status']),
+            models.Index(fields=[r'risk_score']),
         ]
 
 
 class AMLAlert(models.Model):
     """Anti-Money Laundering alerts."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    transaction = models.ForeignKey(TransactionMonitor, on_delete=models.CASCADE, related_name='aml_alerts')
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='aml_alerts')
+    transaction = models.ForeignKey(TransactionMonitor, on_delete=models.CASCADE, related_name=r'aml_alerts')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='aml_alerts')
     alert_type = models.CharField(max_length=50, choices=[
-        ('structuring','Structuring'),
-        ('layering','Layering'),
-        ('smurfing','Smurfing'),
-        ('rapid_movement','Rapid Movement'),
-        ('unusual_pattern','Unusual Pattern'),
-        ('pep_match','PEP Match'),
-        ('sanctions_match','Sanctions Match'),
+        (r'structuring','Structuring'),
+        (r'layering','Layering'),
+        (r'smurfing','Smurfing'),
+        (r'rapid_movement','Rapid Movement'),
+        (r'unusual_pattern','Unusual Pattern'),
+        (r'pep_match','PEP Match'),
+        (r'sanctions_match','Sanctions Match'),
     ])
     severity = models.CharField(max_length=20, choices=[
-        ('low','Low'), ('medium','Medium'),
-        ('high','High'), ('critical','Critical'),
+        (r'low','Low'), ('medium','Medium'),
+        (r'high','High'), ('critical','Critical'),
     ])
     description = models.TextField()
     is_resolved = models.BooleanField(default=False)
-    resolved_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True, related_name='resolved_alerts')
+    resolved_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True, related_name='resolved_alerts')
     resolved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_aml_alert'
+        db_table = r'compliance_aml_alert'
 
 
 class SARReport(models.Model):
     """Suspicious Activity Report — wajib dilaporkan ke PPATK."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    alert = models.ForeignKey(AMLAlert, on_delete=models.CASCADE, related_name='sar_reports')
+    alert = models.ForeignKey(AMLAlert, on_delete=models.CASCADE, related_name=r'sar_reports')
     report_number = models.CharField(max_length=50, unique=True)
     narrative = models.TextField()
-    submitted_to = models.CharField(max_length=50, default='PPATK')
+    submitted_to = models.CharField(max_length=50, default=r'PPATK')
     submitted_at = models.DateTimeField(null=True, blank=True)
     is_submitted = models.BooleanField(default=False)
-    created_by = models.ForeignKey('users.BankUser', on_delete=models.CASCADE)
+    created_by = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_sar_report'
+        db_table = r'compliance_sar_report'
 
 
 class RegulatoryReport(models.Model):
     """Laporan otomatis ke OJK/BI/PPATK."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     report_type = models.CharField(max_length=50, choices=[
-        ('ojk_daily','OJK Daily'),
-        ('bi_weekly','BI Weekly'),
-        ('ppatk_monthly','PPATK Monthly'),
-        ('lkd_quarterly','LKD Quarterly'),
-        ('swift_annual','SWIFT Annual'),
+        (r'ojk_daily','OJK Daily'),
+        (r'bi_weekly','BI Weekly'),
+        (r'ppatk_monthly','PPATK Monthly'),
+        (r'lkd_quarterly','LKD Quarterly'),
+        (r'swift_annual','SWIFT Annual'),
     ])
     regulator = models.CharField(max_length=50)
     period_start = models.DateTimeField()
@@ -344,11 +344,11 @@ class RegulatoryReport(models.Model):
     file_path = models.TextField(blank=True)
     is_submitted = models.BooleanField(default=False)
     submitted_at = models.DateTimeField(null=True, blank=True)
-    created_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True)
+    created_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_regulatory_report'
+        db_table = r'compliance_regulatory_report'
 
 
 class FraudPattern(models.Model):
@@ -356,11 +356,11 @@ class FraudPattern(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     pattern_name = models.CharField(max_length=100)
     pattern_type = models.CharField(max_length=50, choices=[
-        ('velocity','Velocity Check'),
-        ('geolocation','Geolocation Anomaly'),
-        ('device','Device Fingerprint'),
-        ('behavioral','Behavioral Analysis'),
-        ('network','Network Analysis'),
+        (r'velocity','Velocity Check'),
+        (r'geolocation','Geolocation Anomaly'),
+        (r'device','Device Fingerprint'),
+        (r'behavioral','Behavioral Analysis'),
+        (r'network','Network Analysis'),
     ])
     rules = models.JSONField(default=dict)
     threshold = models.FloatField(default=0.8)
@@ -371,56 +371,56 @@ class FraudPattern(models.Model):
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'compliance_fraud_pattern'
+        db_table = r'compliance_fraud_pattern'
 
 
 class FraudCase(models.Model):
     """Fraud investigation cases."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     case_number = models.CharField(max_length=50, unique=True)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='fraud_cases')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='fraud_cases')
     pattern = models.ForeignKey(FraudPattern, on_delete=models.SET_NULL, null=True)
     transaction = models.ForeignKey(TransactionMonitor, on_delete=models.SET_NULL, null=True)
     status = models.CharField(max_length=20, choices=[
-        ('open','Open'), ('investigating','Investigating'),
-        ('confirmed','Confirmed Fraud'), ('dismissed','Dismissed'),
-    ], default='open')
+        (r'open','Open'), ('investigating','Investigating'),
+        (r'confirmed','Confirmed Fraud'), ('dismissed','Dismissed'),
+    ], default=r'open')
     evidence = models.JSONField(default=dict)
-    assigned_to = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True, related_name='assigned_cases')
+    assigned_to = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True, related_name='assigned_cases')
     resolved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_fraud_case'
+        db_table = r'compliance_fraud_case'
 
 
 class KYCVerificationFlow(models.Model):
     """KYC verification workflow."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='kyc_flows')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='kyc_flows')
     step = models.CharField(max_length=50, choices=[
-        ('identity','Identity Verification'),
-        ('liveness','Liveness Check'),
-        ('document','Document Scan'),
-        ('address','Address Verification'),
-        ('pep_check','PEP Screening'),
-        ('sanctions','Sanctions Check'),
-        ('approved','Approved'),
-        ('rejected','Rejected'),
+        (r'identity','Identity Verification'),
+        (r'liveness','Liveness Check'),
+        (r'document','Document Scan'),
+        (r'address','Address Verification'),
+        (r'pep_check','PEP Screening'),
+        (r'sanctions','Sanctions Check'),
+        (r'approved','Approved'),
+        (r'rejected','Rejected'),
     ])
     status = models.CharField(max_length=20, choices=[
-        ('pending','Pending'), ('processing','Processing'),
-        ('passed','Passed'), ('failed','Failed'),
-    ], default='pending')
+        (r'pending','Pending'), ('processing','Processing'),
+        (r'passed','Passed'), ('failed','Failed'),
+    ], default=r'pending')
     provider = models.CharField(max_length=50, blank=True)
     result_data = models.JSONField(default=dict)
     confidence_score = models.FloatField(default=0.0)
-    reviewed_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True)
+    reviewed_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = 'compliance_kyc_flow'
+        db_table = r'compliance_kyc_flow'
 
 
 class ImmutableAuditChain(models.Model):
@@ -439,8 +439,8 @@ class ImmutableAuditChain(models.Model):
     ip_address = models.GenericIPAddressField(null=True)
 
     class Meta:
-        db_table = 'compliance_immutable_chain'
-        ordering = ['sequence']
+        db_table = r'compliance_immutable_chain'
+        ordering = [r'sequence']
 
     def save(self, *args, **kwargs):
         if self.pk:
@@ -454,35 +454,35 @@ class ImmutableAuditChain(models.Model):
 class PEPScreening(models.Model):
     """Politically Exposed Person screening."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='pep_screenings')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='pep_screenings')
     is_pep = models.BooleanField(default=False)
     pep_category = models.CharField(max_length=50, blank=True)
     pep_country = models.CharField(max_length=50, blank=True)
     risk_level = models.CharField(max_length=20, choices=[
-        ('low','Low'), ('medium','Medium'), ('high','High'),
-    ], default='low')
-    screened_by = models.CharField(max_length=50, default='automated')
+        (r'low','Low'), ('medium','Medium'), ('high','High'),
+    ], default=r'low')
+    screened_by = models.CharField(max_length=50, default=r'automated')
     screened_at = models.DateTimeField(auto_now_add=True)
     next_review = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(blank=True)
 
     class Meta:
-        db_table = 'compliance_pep_screening'
+        db_table = r'compliance_pep_screening'
 
 
 class SanctionsCheck(models.Model):
     """OFAC/UN sanctions screening."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='sanctions_checks')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='sanctions_checks')
     is_sanctioned = models.BooleanField(default=False)
     sanctions_list = models.CharField(max_length=50, blank=True)
     match_score = models.FloatField(default=0.0)
     match_details = models.JSONField(default=dict)
     screened_at = models.DateTimeField(auto_now_add=True)
-    screened_by = models.CharField(max_length=50, default='automated')
+    screened_by = models.CharField(max_length=50, default=r'automated')
 
     class Meta:
-        db_table = 'compliance_sanctions_check'
+        db_table = r'compliance_sanctions_check'
 
 
 class StressTestScenario(models.Model):
@@ -490,60 +490,60 @@ class StressTestScenario(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     scenario_name = models.CharField(max_length=100)
     scenario_type = models.CharField(max_length=50, choices=[
-        ('credit_risk','Credit Risk'),
-        ('market_risk','Market Risk'),
-        ('liquidity_risk','Liquidity Risk'),
-        ('operational_risk','Operational Risk'),
-        ('systemic_risk','Systemic Risk'),
+        (r'credit_risk','Credit Risk'),
+        (r'market_risk','Market Risk'),
+        (r'liquidity_risk','Liquidity Risk'),
+        (r'operational_risk','Operational Risk'),
+        (r'systemic_risk','Systemic Risk'),
     ])
     parameters = models.JSONField(default=dict)
     assumptions = models.TextField(blank=True)
     is_regulatory = models.BooleanField(default=False)
     regulator = models.CharField(max_length=50, blank=True)
-    created_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True)
+    created_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_stress_test_scenario'
+        db_table = r'compliance_stress_test_scenario'
 
 
 class StressTestResult(models.Model):
     """Stress test results."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    scenario = models.ForeignKey(StressTestScenario, on_delete=models.CASCADE, related_name='results')
+    scenario = models.ForeignKey(StressTestScenario, on_delete=models.CASCADE, related_name=r'results')
     capital_ratio = models.FloatField(default=0.0)
     liquidity_ratio = models.FloatField(default=0.0)
     npv_impact = models.DecimalField(max_digits=20, decimal_places=2, null=True)
     passed = models.BooleanField(default=False)
     result_data = models.JSONField(default=dict)
-    run_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True)
+    run_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True)
     run_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_stress_test_result'
+        db_table = r'compliance_stress_test_result'
 
 
 class WatchlistEntry(models.Model):
     """Regulatory watchlist entries."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='watchlist_entries')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='watchlist_entries')
     watchlist_type = models.CharField(max_length=50, choices=[
-        ('aml','AML Watchlist'),
-        ('fraud','Fraud Watchlist'),
-        ('sanctions','Sanctions List'),
-        ('pep','PEP List'),
-        ('internal','Internal Watchlist'),
+        (r'aml','AML Watchlist'),
+        (r'fraud','Fraud Watchlist'),
+        (r'sanctions','Sanctions List'),
+        (r'pep','PEP List'),
+        (r'internal','Internal Watchlist'),
     ])
     reason = models.TextField()
     risk_score = models.FloatField(default=0.0)
-    added_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True, related_name='watchlist_additions')
+    added_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True, related_name='watchlist_additions')
     review_date = models.DateTimeField(null=True, blank=True)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     removed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = 'compliance_watchlist'
+        db_table = r'compliance_watchlist'
 
 
 class DataRetentionExecution(models.Model):
@@ -554,23 +554,23 @@ class DataRetentionExecution(models.Model):
     bytes_freed = models.BigIntegerField(default=0)
     execution_time_ms = models.PositiveIntegerField(default=0)
     status = models.CharField(max_length=20, choices=[
-        ('running','Running'), ('completed','Completed'),
-        ('failed','Failed'), ('partial','Partial'),
-    ], default='running')
+        (r'running','Running'), ('completed','Completed'),
+        (r'failed','Failed'), ('partial','Partial'),
+    ], default=r'running')
     error_log = models.TextField(blank=True)
-    executed_by = models.CharField(max_length=50, default='celery')
+    executed_by = models.CharField(max_length=50, default=r'celery')
     started_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = 'compliance_retention_execution'
+        db_table = r'compliance_retention_execution'
 
 
 class NDARecord(models.Model):
     """Non-Disclosure Agreement records."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='ndas')
-    deal_room = models.ForeignKey('workspace.DealRoom', on_delete=models.CASCADE, related_name='ndas', null=True)
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='ndas')
+    deal_room = models.ForeignKey(r'workspace.DealRoom', on_delete=models.CASCADE, related_name='ndas', null=True)
     document_hash = models.CharField(max_length=64)
     document_cid = models.TextField(blank=True)
     signature_b64 = models.TextField()
@@ -579,58 +579,58 @@ class NDARecord(models.Model):
     is_active = models.BooleanField(default=True)
 
     class Meta:
-        db_table = 'compliance_nda_record'
+        db_table = r'compliance_nda_record'
 
 
 class RegulatoryDeadline(models.Model):
     """Track regulatory submission deadlines."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     regulator = models.CharField(max_length=50, choices=[
-        ('ojk','OJK'), ('bi','Bank Indonesia'),
-        ('ppatk','PPATK'), ('basel','Basel Committee'),
-        ('swift','SWIFT'), ('fatf','FATF'),
+        (r'ojk','OJK'), ('bi','Bank Indonesia'),
+        (r'ppatk','PPATK'), ('basel','Basel Committee'),
+        (r'swift','SWIFT'), ('fatf','FATF'),
     ])
     requirement = models.CharField(max_length=255)
     deadline = models.DateTimeField()
     is_recurring = models.BooleanField(default=False)
     recurrence = models.CharField(max_length=20, blank=True)
-    assigned_to = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True)
+    assigned_to = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True)
     is_completed = models.BooleanField(default=False)
     completed_at = models.DateTimeField(null=True, blank=True)
     notes = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_regulatory_deadline'
+        db_table = r'compliance_regulatory_deadline'
 
 
 class AIComplianceAlert(models.Model):
     """AI-powered compliance alerts."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     alert_source = models.CharField(max_length=50, choices=[
-        ('nlp_scan','NLP Message Scan'),
-        ('behavior_analysis','Behavior Analysis'),
-        ('pattern_match','Pattern Matching'),
-        ('anomaly_detection','Anomaly Detection'),
-        ('sentiment_analysis','Sentiment Analysis'),
+        (r'nlp_scan','NLP Message Scan'),
+        (r'behavior_analysis','Behavior Analysis'),
+        (r'pattern_match','Pattern Matching'),
+        (r'anomaly_detection','Anomaly Detection'),
+        (r'sentiment_analysis','Sentiment Analysis'),
     ])
     severity = models.CharField(max_length=20, choices=[
-        ('low','Low'), ('medium','Medium'),
-        ('high','High'), ('critical','Critical'),
+        (r'low','Low'), ('medium','Medium'),
+        (r'high','High'), ('critical','Critical'),
     ])
     confidence_score = models.FloatField(default=0.0)
-    affected_user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='ai_alerts')
+    affected_user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='ai_alerts')
     resource_type = models.CharField(max_length=50, blank=True)
     resource_id = models.CharField(max_length=50, blank=True)
     description = models.TextField()
     raw_signal = models.JSONField(default=dict)
     is_false_positive = models.BooleanField(default=False)
-    reviewed_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True, related_name='reviewed_ai_alerts')
+    reviewed_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True, related_name='reviewed_ai_alerts')
     created_at = models.DateTimeField(auto_now_add=True)
     reviewed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = 'compliance_ai_alert'
+        db_table = r'compliance_ai_alert'
 
 
 class MLModelRegistry(models.Model):
@@ -638,12 +638,12 @@ class MLModelRegistry(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     model_name = models.CharField(max_length=100)
     model_type = models.CharField(max_length=50, choices=[
-        ('fraud_detection','Fraud Detection'),
-        ('aml_detection','AML Detection'),
-        ('sentiment','Sentiment Analysis'),
-        ('anomaly','Anomaly Detection'),
-        ('kyc_verification','KYC Verification'),
-        ('risk_scoring','Risk Scoring'),
+        (r'fraud_detection','Fraud Detection'),
+        (r'aml_detection','AML Detection'),
+        (r'sentiment','Sentiment Analysis'),
+        (r'anomaly','Anomaly Detection'),
+        (r'kyc_verification','KYC Verification'),
+        (r'risk_scoring','Risk Scoring'),
     ])
     version = models.CharField(max_length=20)
     model_hash = models.CharField(max_length=64)
@@ -653,23 +653,23 @@ class MLModelRegistry(models.Model):
     f1_score = models.FloatField(default=0.0)
     is_active = models.BooleanField(default=False)
     deployed_at = models.DateTimeField(null=True, blank=True)
-    trained_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True)
+    trained_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_ml_model'
+        db_table = r'compliance_ml_model'
 
 
 class CommunicationSurveillance(models.Model):
     """MiFID II/FINRA communication surveillance."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    channel = models.ForeignKey('workspace.Channel', on_delete=models.CASCADE)
+    channel = models.ForeignKey(r'workspace.Channel', on_delete=models.CASCADE)
     scan_type = models.CharField(max_length=50, choices=[
-        ('keyword','Keyword Scan'),
-        ('nlp','NLP Analysis'),
-        ('sentiment','Sentiment Analysis'),
-        ('insider_trading','Insider Trading Detection'),
-        ('market_manipulation','Market Manipulation'),
+        (r'keyword','Keyword Scan'),
+        (r'nlp','NLP Analysis'),
+        (r'sentiment','Sentiment Analysis'),
+        (r'insider_trading','Insider Trading Detection'),
+        (r'market_manipulation','Market Manipulation'),
     ])
     flagged_keywords = models.JSONField(default=list)
     risk_score = models.FloatField(default=0.0)
@@ -677,42 +677,42 @@ class CommunicationSurveillance(models.Model):
     messages_flagged = models.PositiveIntegerField(default=0)
     scan_period_start = models.DateTimeField()
     scan_period_end = models.DateTimeField()
-    reviewed_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True)
+    reviewed_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_comm_surveillance'
+        db_table = r'compliance_comm_surveillance'
 
 
 class RiskMatrix(models.Model):
     """Enterprise risk matrix."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     risk_category = models.CharField(max_length=50, choices=[
-        ('credit','Credit Risk'),
-        ('market','Market Risk'),
-        ('liquidity','Liquidity Risk'),
-        ('operational','Operational Risk'),
-        ('reputational','Reputational Risk'),
-        ('compliance','Compliance Risk'),
-        ('cyber','Cyber Risk'),
-        ('strategic','Strategic Risk'),
+        (r'credit','Credit Risk'),
+        (r'market','Market Risk'),
+        (r'liquidity','Liquidity Risk'),
+        (r'operational','Operational Risk'),
+        (r'reputational','Reputational Risk'),
+        (r'compliance','Compliance Risk'),
+        (r'cyber','Cyber Risk'),
+        (r'strategic','Strategic Risk'),
     ])
     risk_name = models.CharField(max_length=255)
     likelihood = models.PositiveSmallIntegerField(choices=[(i,i) for i in range(1,6)])
     impact = models.PositiveSmallIntegerField(choices=[(i,i) for i in range(1,6)])
     risk_score = models.FloatField(default=0.0)
     mitigation = models.TextField(blank=True)
-    owner = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True)
+    owner = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True)
     review_date = models.DateTimeField(null=True, blank=True)
     status = models.CharField(max_length=20, choices=[
-        ('identified','Identified'), ('mitigating','Mitigating'),
-        ('accepted','Accepted'), ('resolved','Resolved'),
-    ], default='identified')
+        (r'identified','Identified'), ('mitigating','Mitigating'),
+        (r'accepted','Accepted'), ('resolved','Resolved'),
+    ], default=r'identified')
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'compliance_risk_matrix'
+        db_table = r'compliance_risk_matrix'
 
 
 class BaselCapitalReport(models.Model):
@@ -730,11 +730,11 @@ class BaselCapitalReport(models.Model):
     is_compliant = models.BooleanField(default=True)
     submitted_to_ojk = models.BooleanField(default=False)
     submitted_at = models.DateTimeField(null=True, blank=True)
-    created_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True)
+    created_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_basel_capital'
+        db_table = r'compliance_basel_capital'
 
 
 class LiquidityReport(models.Model):
@@ -752,107 +752,107 @@ class LiquidityReport(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_liquidity_report'
+        db_table = r'compliance_liquidity_report'
 
 
 class InsiderTradingMonitor(models.Model):
     """Insider trading detection and monitoring."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='insider_monitors')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='insider_monitors')
     instrument = models.CharField(max_length=50)
     isin = models.CharField(max_length=12, blank=True)
     action = models.CharField(max_length=20, choices=[
-        ('buy','Buy'), ('sell','Sell'),
-        ('short','Short'), ('option','Option'),
+        (r'buy','Buy'), ('sell','Sell'),
+        (r'short','Short'), ('option','Option'),
     ])
     amount = models.DecimalField(max_digits=20, decimal_places=2)
-    currency = models.CharField(max_length=3, default='IDR')
+    currency = models.CharField(max_length=3, default=r'IDR')
     is_during_blackout = models.BooleanField(default=False)
     has_material_info = models.BooleanField(default=False)
     risk_score = models.FloatField(default=0.0)
     is_flagged = models.BooleanField(default=False)
-    reviewed_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True, related_name='reviewed_insider')
+    reviewed_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True, related_name='reviewed_insider')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_insider_trading'
+        db_table = r'compliance_insider_trading'
 
 
 class BlackoutPeriod(models.Model):
     """Trading blackout periods."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE)
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE)
     reason = models.CharField(max_length=255)
     affected_roles = models.JSONField(default=list)
     affected_instruments = models.JSONField(default=list)
     start_date = models.DateField()
     end_date = models.DateField()
     is_active = models.BooleanField(default=True)
-    created_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True)
+    created_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_blackout_period'
+        db_table = r'compliance_blackout_period'
 
 
 class GDPRRequest(models.Model):
     """GDPR data subject requests."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='gdpr_requests')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='gdpr_requests')
     request_type = models.CharField(max_length=50, choices=[
-        ('access','Right to Access'),
-        ('erasure','Right to Erasure'),
-        ('portability','Data Portability'),
-        ('rectification','Rectification'),
-        ('restriction','Restriction'),
-        ('objection','Objection'),
+        (r'access','Right to Access'),
+        (r'erasure','Right to Erasure'),
+        (r'portability','Data Portability'),
+        (r'rectification','Rectification'),
+        (r'restriction','Restriction'),
+        (r'objection','Objection'),
     ])
     status = models.CharField(max_length=20, choices=[
-        ('received','Received'), ('processing','Processing'),
-        ('completed','Completed'), ('rejected','Rejected'),
-    ], default='received')
+        (r'received','Received'), ('processing','Processing'),
+        (r'completed','Completed'), ('rejected','Rejected'),
+    ], default=r'received')
     due_date = models.DateTimeField()
     response_data_cid = models.TextField(blank=True)
-    processed_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True, related_name='processed_gdpr')
+    processed_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True, related_name='processed_gdpr')
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        db_table = 'compliance_gdpr_request'
+        db_table = r'compliance_gdpr_request'
 
 
 class AuditFinding(models.Model):
     """Internal/external audit findings."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     audit_type = models.CharField(max_length=50, choices=[
-        ('internal','Internal Audit'),
-        ('external','External Audit'),
-        ('regulatory','Regulatory Examination'),
-        ('penetration_test','Penetration Test'),
-        ('iso_27001','ISO 27001 Audit'),
+        (r'internal','Internal Audit'),
+        (r'external','External Audit'),
+        (r'regulatory','Regulatory Examination'),
+        (r'penetration_test','Penetration Test'),
+        (r'iso_27001','ISO 27001 Audit'),
     ])
     finding_number = models.CharField(max_length=50, unique=True)
     title = models.CharField(max_length=255)
     description = models.TextField()
     severity = models.CharField(max_length=20, choices=[
-        ('observation','Observation'),
-        ('minor','Minor'),
-        ('major','Major'),
-        ('critical','Critical'),
+        (r'observation','Observation'),
+        (r'minor','Minor'),
+        (r'major','Major'),
+        (r'critical','Critical'),
     ])
     recommendation = models.TextField()
     management_response = models.TextField(blank=True)
     status = models.CharField(max_length=20, choices=[
-        ('open','Open'), ('in_remediation','In Remediation'),
-        ('resolved','Resolved'), ('accepted','Risk Accepted'),
-    ], default='open')
+        (r'open','Open'), ('in_remediation','In Remediation'),
+        (r'resolved','Resolved'), ('accepted','Risk Accepted'),
+    ], default=r'open')
     due_date = models.DateTimeField(null=True)
-    owner = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True)
+    owner = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True)
     resolved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_audit_finding'
+        db_table = r'compliance_audit_finding'
 
 
 class CyberIncidentResponse(models.Model):
@@ -860,17 +860,17 @@ class CyberIncidentResponse(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     incident_id = models.CharField(max_length=50, unique=True)
     incident_type = models.CharField(max_length=50, choices=[
-        ('ransomware','Ransomware'),
-        ('data_breach','Data Breach'),
-        ('ddos','DDoS Attack'),
-        ('apt','Advanced Persistent Threat'),
-        ('insider','Insider Threat'),
-        ('zero_day','Zero Day Exploit'),
-        ('supply_chain','Supply Chain Attack'),
+        (r'ransomware','Ransomware'),
+        (r'data_breach','Data Breach'),
+        (r'ddos','DDoS Attack'),
+        (r'apt','Advanced Persistent Threat'),
+        (r'insider','Insider Threat'),
+        (r'zero_day','Zero Day Exploit'),
+        (r'supply_chain','Supply Chain Attack'),
     ])
     severity = models.CharField(max_length=20, choices=[
-        ('low','Low'), ('medium','Medium'),
-        ('high','High'), ('critical','Critical'),
+        (r'low','Low'), ('medium','Medium'),
+        (r'high','High'), ('critical','Critical'),
     ])
     affected_systems = models.JSONField(default=list)
     affected_users_count = models.PositiveIntegerField(default=0)
@@ -881,16 +881,16 @@ class CyberIncidentResponse(models.Model):
     reported_to_ojk = models.BooleanField(default=False)
     reported_to_bssn = models.BooleanField(default=False)
     status = models.CharField(max_length=20, choices=[
-        ('detected','Detected'), ('contained','Contained'),
-        ('eradicated','Eradicated'), ('recovered','Recovered'),
-        ('closed','Closed'),
-    ], default='detected')
+        (r'detected','Detected'), ('contained','Contained'),
+        (r'eradicated','Eradicated'), ('recovered','Recovered'),
+        (r'closed','Closed'),
+    ], default=r'detected')
     detected_at = models.DateTimeField(auto_now_add=True)
     closed_at = models.DateTimeField(null=True, blank=True)
-    lead_responder = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True)
+    lead_responder = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True)
 
     class Meta:
-        db_table = 'compliance_cyber_incident'
+        db_table = r'compliance_cyber_incident'
 
 
 class PrivacyImpactAssessment(models.Model):
@@ -903,241 +903,241 @@ class PrivacyImpactAssessment(models.Model):
     risks_identified = models.JSONField(default=list)
     mitigations = models.JSONField(default=list)
     residual_risk = models.CharField(max_length=20, choices=[
-        ('low','Low'), ('medium','Medium'), ('high','High'),
-    ], default='low')
+        (r'low','Low'), ('medium','Medium'), ('high','High'),
+    ], default=r'low')
     dpo_approved = models.BooleanField(default=False)
-    dpo_approved_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True)
+    dpo_approved_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True)
     approved_at = models.DateTimeField(null=True, blank=True)
     review_date = models.DateTimeField(null=True, blank=True)
-    created_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True, related_name='created_dpias')
+    created_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True, related_name='created_dpias')
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_dpia'
+        db_table = r'compliance_dpia'
 
 
 class IncidentReport(models.Model):
     """Incident reports for remote work."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='incidents')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='incidents')
     title = models.CharField(max_length=255)
     description = models.TextField()
     incident_type = models.CharField(max_length=50, choices=[
-        ('bug','Bug'),
-        ('outage','Service Outage'),
-        ('security','Security Issue'),
-        ('data_loss','Data Loss'),
-        ('performance','Performance Issue'),
-        ('other','Other'),
+        (r'bug','Bug'),
+        (r'outage','Service Outage'),
+        (r'security','Security Issue'),
+        (r'data_loss','Data Loss'),
+        (r'performance','Performance Issue'),
+        (r'other','Other'),
     ])
     severity = models.CharField(max_length=20, choices=[
-        ('low','Low'), ('medium','Medium'),
-        ('high','High'), ('critical','Critical'),
+        (r'low','Low'), ('medium','Medium'),
+        (r'high','High'), ('critical','Critical'),
     ])
     status = models.CharField(max_length=20, choices=[
-        ('open','Open'), ('investigating','Investigating'),
-        ('resolved','Resolved'), ('closed','Closed'),
-    ], default='open')
-    reporter = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='reported_incidents')
-    assignee = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True, related_name='assigned_incidents_rw')
+        (r'open','Open'), ('investigating','Investigating'),
+        (r'resolved','Resolved'), ('closed','Closed'),
+    ], default=r'open')
+    reporter = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='reported_incidents')
+    assignee = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True, related_name='assigned_incidents_rw')
     resolved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_incident_report'
+        db_table = r'compliance_incident_report'
 
 
 class IncidentTimeline(models.Model):
     """Timeline for incident resolution."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    incident = models.ForeignKey(IncidentReport, on_delete=models.CASCADE, related_name='timeline')
+    incident = models.ForeignKey(IncidentReport, on_delete=models.CASCADE, related_name=r'timeline')
     action = models.TextField()
-    actor = models.ForeignKey('users.BankUser', on_delete=models.CASCADE)
+    actor = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_incident_timeline'
+        db_table = r'compliance_incident_timeline'
 
 
 class PostMortem(models.Model):
     """Post-mortem analysis."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    incident = models.OneToOneField(IncidentReport, on_delete=models.CASCADE, related_name='post_mortem')
+    incident = models.OneToOneField(IncidentReport, on_delete=models.CASCADE, related_name=r'post_mortem')
     root_cause = models.TextField()
     impact = models.TextField()
     timeline = models.TextField()
     action_items = models.JSONField(default=list)
     lessons_learned = models.TextField()
-    written_by = models.ForeignKey('users.BankUser', on_delete=models.CASCADE)
+    written_by = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_post_mortem'
+        db_table = r'compliance_post_mortem'
 
 
 class OnCallSchedule(models.Model):
     """On-call schedule for remote teams."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='oncall_schedules')
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='oncall_shifts')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='oncall_schedules')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='oncall_shifts')
     start_time = models.DateTimeField()
     end_time = models.DateTimeField()
     is_primary = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_oncall_schedule'
+        db_table = r'compliance_oncall_schedule'
 
 
 class RunBook(models.Model):
     """Operational runbooks."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='runbooks')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='runbooks')
     title = models.CharField(max_length=255)
     category = models.CharField(max_length=50, choices=[
-        ('deployment','Deployment'),
-        ('incident','Incident Response'),
-        ('onboarding','Onboarding'),
-        ('maintenance','Maintenance'),
-        ('security','Security'),
+        (r'deployment','Deployment'),
+        (r'incident','Incident Response'),
+        (r'onboarding','Onboarding'),
+        (r'maintenance','Maintenance'),
+        (r'security','Security'),
     ])
     steps = models.JSONField(default=list)
     content_encrypted_b64 = models.TextField()
     nonce_b64 = models.TextField()
     auth_tag_b64 = models.TextField()
     version = models.PositiveIntegerField(default=1)
-    created_by = models.ForeignKey('users.BankUser', on_delete=models.CASCADE)
+    created_by = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'compliance_runbook'
+        db_table = r'compliance_runbook'
 
 
 class AuditExport(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='audit_exports')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='audit_exports')
     export_type = models.CharField(max_length=50)
     date_from = models.DateField()
     date_to = models.DateField()
     file_cid = models.TextField(blank=True)
-    status = models.CharField(max_length=20, default='pending')
-    requested_by = models.ForeignKey('users.BankUser', on_delete=models.CASCADE)
+    status = models.CharField(max_length=20, default=r'pending')
+    requested_by = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'compliance_audit_export'
+    class Meta: db_table = r'compliance_audit_export'
 
 class PolicyDocument(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='policies')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='policies')
     title = models.CharField(max_length=255)
-    policy_type = models.CharField(max_length=50, choices=[('privacy','Privacy Policy'),('security','Security Policy'),('acceptable_use','Acceptable Use'),('data_retention','Data Retention'),('remote_work','Remote Work Policy')])
+    policy_type = models.CharField(max_length=50, choices=[(r'privacy','Privacy Policy'),('security','Security Policy'),('acceptable_use','Acceptable Use'),('data_retention','Data Retention'),('remote_work','Remote Work Policy')])
     content_encrypted_b64 = models.TextField()
     nonce_b64 = models.TextField()
     auth_tag_b64 = models.TextField()
-    version = models.CharField(max_length=20, default='1.0')
+    version = models.CharField(max_length=20, default=r'1.0')
     effective_date = models.DateField()
     is_active = models.BooleanField(default=True)
-    created_by = models.ForeignKey('users.BankUser', on_delete=models.CASCADE)
+    created_by = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'compliance_policy'
+    class Meta: db_table = r'compliance_policy'
 
 class PolicyAcknowledgement(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    policy = models.ForeignKey(PolicyDocument, on_delete=models.CASCADE, related_name='acknowledgements')
-    user = models.ForeignKey('users.BankUser', on_delete=models.CASCADE)
+    policy = models.ForeignKey(PolicyDocument, on_delete=models.CASCADE, related_name=r'acknowledgements')
+    user = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE)
     acknowledged_at = models.DateTimeField(auto_now_add=True)
     class Meta:
-        db_table = 'compliance_policy_ack'
-        unique_together = ['policy', 'user']
+        db_table = r'compliance_policy_ack'
+        unique_together = [r'policy', 'user']
 
 class ComplianceChecklist(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='checklists')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='checklists')
     title = models.CharField(max_length=255)
     items = models.JSONField(default=list)
-    frequency = models.CharField(max_length=20, choices=[('daily','Daily'),('weekly','Weekly'),('monthly','Monthly'),('quarterly','Quarterly')])
+    frequency = models.CharField(max_length=20, choices=[(r'daily','Daily'),('weekly','Weekly'),('monthly','Monthly'),('quarterly','Quarterly')])
     last_completed = models.DateTimeField(null=True)
     next_due = models.DateTimeField(null=True)
-    assigned_to = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True)
+    assigned_to = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'compliance_checklist'
+    class Meta: db_table = r'compliance_checklist'
 
 class ComplianceChecklistRun(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    checklist = models.ForeignKey(ComplianceChecklist, on_delete=models.CASCADE, related_name='runs')
+    checklist = models.ForeignKey(ComplianceChecklist, on_delete=models.CASCADE, related_name=r'runs')
     completed_items = models.JSONField(default=list)
     notes = models.TextField(blank=True)
-    completed_by = models.ForeignKey('users.BankUser', on_delete=models.CASCADE)
+    completed_by = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE)
     completed_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'compliance_checklist_run'
+    class Meta: db_table = r'compliance_checklist_run'
 
 class DataAccessRequest(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE)
-    requester = models.ForeignKey('users.BankUser', on_delete=models.CASCADE, related_name='data_requests')
-    request_type = models.CharField(max_length=50, choices=[('export','Data Export'),('deletion','Data Deletion'),('correction','Data Correction'),('access','Data Access')])
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE)
+    requester = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE, related_name='data_requests')
+    request_type = models.CharField(max_length=50, choices=[(r'export','Data Export'),('deletion','Data Deletion'),('correction','Data Correction'),('access','Data Access')])
     description = models.TextField()
-    status = models.CharField(max_length=20, default='pending')
-    processed_by = models.ForeignKey('users.BankUser', on_delete=models.SET_NULL, null=True, related_name='processed_requests')
+    status = models.CharField(max_length=20, default=r'pending')
+    processed_by = models.ForeignKey(r'users.BankUser', on_delete=models.SET_NULL, null=True, related_name='processed_requests')
     created_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True)
-    class Meta: db_table = 'compliance_data_request'
+    class Meta: db_table = r'compliance_data_request'
 
 class SecurityScan(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='security_scans')
-    scan_type = models.CharField(max_length=50, choices=[('vulnerability','Vulnerability'),('penetration','Penetration Test'),('code_review','Code Review'),('config_audit','Config Audit')])
-    status = models.CharField(max_length=20, default='running')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='security_scans')
+    scan_type = models.CharField(max_length=50, choices=[(r'vulnerability','Vulnerability'),('penetration','Penetration Test'),('code_review','Code Review'),('config_audit','Config Audit')])
+    status = models.CharField(max_length=20, default=r'running')
     findings = models.JSONField(default=list)
     score = models.FloatField(default=0.0)
-    initiated_by = models.ForeignKey('users.BankUser', on_delete=models.CASCADE)
+    initiated_by = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE)
     started_at = models.DateTimeField(auto_now_add=True)
     completed_at = models.DateTimeField(null=True)
-    class Meta: db_table = 'compliance_security_scan'
+    class Meta: db_table = r'compliance_security_scan'
 
 class NotificationRule(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='notification_rules')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='notification_rules')
     name = models.CharField(max_length=100)
     trigger_type = models.CharField(max_length=50)
     conditions = models.JSONField(default=dict)
     channels = models.JSONField(default=list)
     is_active = models.BooleanField(default=True)
-    created_by = models.ForeignKey('users.BankUser', on_delete=models.CASCADE)
+    created_by = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'compliance_notification_rule'
+    class Meta: db_table = r'compliance_notification_rule'
 
 class SystemLog(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, null=True)
-    level = models.CharField(max_length=10, choices=[('DEBUG','DEBUG'),('INFO','INFO'),('WARNING','WARNING'),('ERROR','ERROR'),('CRITICAL','CRITICAL')])
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, null=True)
+    level = models.CharField(max_length=10, choices=[(r'DEBUG','DEBUG'),('INFO','INFO'),('WARNING','WARNING'),('ERROR','ERROR'),('CRITICAL','CRITICAL')])
     service = models.CharField(max_length=50)
     message = models.TextField()
     metadata = models.JSONField(default=dict)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'compliance_system_log'
+    class Meta: db_table = r'compliance_system_log'
 
 class AlertRule(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='alert_rules')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='alert_rules')
     name = models.CharField(max_length=100)
     metric = models.CharField(max_length=50)
     threshold = models.FloatField()
-    comparison = models.CharField(max_length=10, choices=[('gt','Greater Than'),('lt','Less Than'),('eq','Equal')])
-    severity = models.CharField(max_length=20, default='warning')
+    comparison = models.CharField(max_length=10, choices=[(r'gt','Greater Than'),('lt','Less Than'),('eq','Equal')])
+    severity = models.CharField(max_length=20, default=r'warning')
     is_active = models.BooleanField(default=True)
-    created_by = models.ForeignKey('users.BankUser', on_delete=models.CASCADE)
+    created_by = models.ForeignKey(r'users.BankUser', on_delete=models.CASCADE)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'compliance_alert_rule'
+    class Meta: db_table = r'compliance_alert_rule'
 
 class AlertInstance(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    rule = models.ForeignKey(AlertRule, on_delete=models.CASCADE, related_name='instances')
+    rule = models.ForeignKey(AlertRule, on_delete=models.CASCADE, related_name=r'instances')
     value = models.FloatField()
     is_resolved = models.BooleanField(default=False)
     resolved_at = models.DateTimeField(null=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    class Meta: db_table = 'compliance_alert_instance'
+    class Meta: db_table = r'compliance_alert_instance'
 
 
 class ImmutableAuditLog(models.Model):
@@ -1156,9 +1156,9 @@ class ImmutableAuditLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     
     class Meta:
-        db_table = 'compliance_immutable_audit'
-        app_label = 'compliance'
-        ordering = ['created_at']
+        db_table = r'compliance_immutable_audit'
+        app_label = r'compliance'
+        ordering = [r'created_at']
     
     def __str__(self):
         return f"{self.action} by {self.sender_id} at {self.created_at}"
@@ -1177,9 +1177,9 @@ class ShamirKeyShare(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        db_table = 'compliance_shamir_share'
-        app_label = 'compliance'
-        unique_together = ['workspace_id', 'share_index']
+        db_table = r'compliance_shamir_share'
+        app_label = r'compliance'
+        unique_together = [r'workspace_id', 'share_index']
 
 class ChannelPolicy(models.Model):
     """Kebijakan channel - self-destruct boleh/tidak"""
@@ -1187,19 +1187,19 @@ class ChannelPolicy(models.Model):
     workspace_id = models.CharField(max_length=50)
     channel_name = models.CharField(max_length=100)
     channel_type = models.CharField(max_length=20, choices=[
-        ('general', 'General Chat'),
-        ('official', 'Official Instruction'),
-        ('operational', 'Operational'),
-    ], default='general')
+        (r'general', 'General Chat'),
+        (r'official', 'Official Instruction'),
+        (r'operational', 'Operational'),
+    ], default=r'general')
     allow_self_destruct = models.BooleanField(default=True)
     retention_days = models.PositiveIntegerField(default=365)  # Retensi data
     require_audit = models.BooleanField(default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        db_table = 'compliance_channel_policy'
-        app_label = 'compliance'
-        unique_together = ['workspace_id', 'channel_name']
+        db_table = r'compliance_channel_policy'
+        app_label = r'compliance'
+        unique_together = [r'workspace_id', 'channel_name']
 
 class EmergencyAccessLog(models.Model):
     """Log akses darurat - ketika 2 dari 3 pemegang kunci setuju"""
@@ -1215,8 +1215,8 @@ class EmergencyAccessLog(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     
     class Meta:
-        db_table = 'compliance_emergency_access'
-        app_label = 'compliance'
+        db_table = r'compliance_emergency_access'
+        app_label = r'compliance'
 import uuid
 from django.db import models
 from django.conf import settings
@@ -1224,11 +1224,11 @@ from django.conf import settings
 
 class OJKIncidentReport(models.Model):
     """Auto-report insiden siber ke OJK maksimal 24 jam."""
-    SEVERITY = [('low','Low'),('medium','Medium'),('high','High'),('critical','Critical')]
-    STATUS = [('draft','Draft'),('submitted','Submitted'),('acknowledged','Acknowledged'),('failed','Failed')]
+    SEVERITY = [(r'low','Low'),('medium','Medium'),('high','High'),('critical','Critical')]
+    STATUS = [(r'draft','Draft'),('submitted','Submitted'),('acknowledged','Acknowledged'),('failed','Failed')]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='ojk_reports')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='ojk_reports')
     incident_type = models.CharField(max_length=100)
     severity = models.CharField(max_length=20, choices=SEVERITY)
     description = models.TextField()
@@ -1236,7 +1236,7 @@ class OJKIncidentReport(models.Model):
     affected_users_count = models.PositiveIntegerField(default=0)
     detected_at = models.DateTimeField()
     reported_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
-    status = models.CharField(max_length=20, choices=STATUS, default='draft')
+    status = models.CharField(max_length=20, choices=STATUS, default=r'draft')
     ojk_reference_number = models.CharField(max_length=100, blank=True)
     submitted_at = models.DateTimeField(null=True, blank=True)
     deadline_at = models.DateTimeField(help_text="24 jam sejak detected_at")
@@ -1245,14 +1245,14 @@ class OJKIncidentReport(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_ojk_incident'
-        ordering = ['-created_at']
+        db_table = r'compliance_ojk_incident'
+        ordering = [r'-created_at']
 
 
 class InformationBarrier(models.Model):
     """Ethical walls — blokir komunikasi antar divisi."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='info_barriers')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='info_barriers')
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
     blocked_departments = models.JSONField(default=list, help_text="Pasangan divisi yang diblokir")
@@ -1261,31 +1261,31 @@ class InformationBarrier(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_info_barrier'
+        db_table = r'compliance_info_barrier'
 
 
 class RemoteWipeRequest(models.Model):
     """Admin bisa wipe data app di device karyawan dari jauh."""
-    STATUS = [('pending','Pending'),('executed','Executed'),('cancelled','Cancelled')]
+    STATUS = [(r'pending','Pending'),('executed','Executed'),('cancelled','Cancelled')]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    target_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='wipe_requests')
-    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name='issued_wipes')
+    target_user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name=r'wipe_requests')
+    requested_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name=r'issued_wipes')
     reason = models.TextField()
     device_token = models.CharField(max_length=256, blank=True, help_text="Target device token")
-    status = models.CharField(max_length=20, choices=STATUS, default='pending')
+    status = models.CharField(max_length=20, choices=STATUS, default=r'pending')
     executed_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_remote_wipe'
+        db_table = r'compliance_remote_wipe'
 
 
 class SecureFileLink(models.Model):
     """File link terenkripsi dengan expiry + password."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='secure_links')
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE)
+    uploaded_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name=r'secure_links')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE)
     filename = models.CharField(max_length=256)
     file_size_bytes = models.BigIntegerField(default=0)
     ipfs_cid = models.CharField(max_length=128, blank=True)
@@ -1299,82 +1299,82 @@ class SecureFileLink(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_secure_file_link'
+        db_table = r'compliance_secure_file_link'
 
 
 class DLPRule(models.Model):
     """Data Loss Prevention rules."""
-    ACTIONS = [('block','Block'),('warn','Warn'),('log','Log Only')]
+    ACTIONS = [(r'block','Block'),('warn','Warn'),('log','Log Only')]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='dlp_rules')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='dlp_rules')
     name = models.CharField(max_length=100)
     pattern = models.TextField(help_text="Regex pattern untuk deteksi data sensitif")
     data_type = models.CharField(max_length=50, choices=[
-        ('credit_card','Credit Card'),('nik','NIK'),('account_number','Account Number'),
-        ('phone','Phone Number'),('custom','Custom'),
+        (r'credit_card','Credit Card'),('nik','NIK'),('account_number','Account Number'),
+        (r'phone','Phone Number'),('custom','Custom'),
     ])
-    action = models.CharField(max_length=10, choices=ACTIONS, default='block')
+    action = models.CharField(max_length=10, choices=ACTIONS, default=r'block')
     is_active = models.BooleanField(default=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_dlp_rule'
+        db_table = r'compliance_dlp_rule'
 
 
 class HelpdeskTicket(models.Model):
     """Helpdesk ticketing terintegrasi."""
-    PRIORITY = [('low','Low'),('medium','Medium'),('high','High'),('critical','Critical')]
-    STATUS = [('open','Open'),('in_progress','In Progress'),('resolved','Resolved'),('closed','Closed')]
-    CATEGORY = [('hardware','Hardware'),('software','Software'),('network','Network'),('security','Security'),('other','Other')]
+    PRIORITY = [(r'low','Low'),('medium','Medium'),('high','High'),('critical','Critical')]
+    STATUS = [(r'open','Open'),('in_progress','In Progress'),('resolved','Resolved'),('closed','Closed')]
+    CATEGORY = [(r'hardware','Hardware'),('software','Software'),('network','Network'),('security','Security'),('other','Other')]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     ticket_number = models.CharField(max_length=20, unique=True)
-    workspace = models.ForeignKey('workspace.Workspace', on_delete=models.CASCADE, related_name='tickets')
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='tickets')
-    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='assigned_tickets')
+    workspace = models.ForeignKey(r'workspace.Workspace', on_delete=models.CASCADE, related_name='tickets')
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name=r'tickets')
+    assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name=r'assigned_tickets')
     title = models.CharField(max_length=256)
     description = models.TextField()
-    category = models.CharField(max_length=20, choices=CATEGORY, default='other')
-    priority = models.CharField(max_length=10, choices=PRIORITY, default='medium')
-    status = models.CharField(max_length=20, choices=STATUS, default='open')
+    category = models.CharField(max_length=20, choices=CATEGORY, default=r'other')
+    priority = models.CharField(max_length=10, choices=PRIORITY, default=r'medium')
+    status = models.CharField(max_length=20, choices=STATUS, default=r'open')
     channel_id = models.CharField(max_length=100, blank=True, help_text="Linked messaging channel")
     resolved_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
-        db_table = 'compliance_helpdesk_ticket'
-        ordering = ['-created_at']
+        db_table = r'compliance_helpdesk_ticket'
+        ordering = [r'-created_at']
 
 
 class HelpdeskComment(models.Model):
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    ticket = models.ForeignKey(HelpdeskTicket, on_delete=models.CASCADE, related_name='comments')
+    ticket = models.ForeignKey(HelpdeskTicket, on_delete=models.CASCADE, related_name=r'comments')
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE)
     content = models.TextField()
     is_internal = models.BooleanField(default=False, help_text="Internal IT note, tidak terlihat user")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_helpdesk_comment'
+        db_table = r'compliance_helpdesk_comment'
 
 
 class InstitutionBadge(models.Model):
     """Verified Institution Badge untuk inter-bank."""
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
-    workspace = models.OneToOneField('workspace.Workspace', on_delete=models.CASCADE, related_name='institution_badge')
+    workspace = models.OneToOneField(r'workspace.Workspace', on_delete=models.CASCADE, related_name='institution_badge')
     institution_name = models.CharField(max_length=200)
     institution_code = models.CharField(max_length=20, unique=True, help_text="Kode bank BI")
     verified_by = models.CharField(max_length=100, help_text="OJK/BI verifier name")
     verified_at = models.DateTimeField()
     badge_level = models.CharField(max_length=20, choices=[
-        ('verified','Verified'),('premium','Premium Institution'),('regulator','Regulator'),
-    ], default='verified')
+        (r'verified','Verified'),('premium','Premium Institution'),('regulator','Regulator'),
+    ], default=r'verified')
     is_active = models.BooleanField(default=True)
     expires_at = models.DateTimeField(null=True, blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        db_table = 'compliance_institution_badge'
+        db_table = r'compliance_institution_badge'

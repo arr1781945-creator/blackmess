@@ -6,19 +6,19 @@ from django.db import migrations, models
 class Migration(migrations.Migration):
 
     dependencies = [
-        ('auth', '0012_alter_user_first_name_max_length'),
-        ('users', '0012_alter_loginsession_refresh_jti'),
+        (r'auth', '0012_alter_user_first_name_max_length'),
+        (r'users', '0012_alter_loginsession_refresh_jti'),
     ]
 
     operations = [
         migrations.AlterField(
-            model_name='bankuser',
-            name='groups',
-            field=models.ManyToManyField(blank=True, related_name='bankuser_groups_set', to='auth.group'),
+            model_name=r'bankuser',
+            name=r'groups',
+            field=models.ManyToManyField(blank=True, related_name=r'bankuser_groups_set', to='auth.group'),
         ),
         migrations.AlterField(
-            model_name='bankuser',
-            name='user_permissions',
-            field=models.ManyToManyField(blank=True, related_name='bankuser_permissions_set', to='auth.permission'),
+            model_name=r'bankuser',
+            name=r'user_permissions',
+            field=models.ManyToManyField(blank=True, related_name=r'bankuser_permissions_set', to='auth.permission'),
         ),
     ]

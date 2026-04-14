@@ -64,11 +64,11 @@ class SanitizeLogFilter(logging.Filter):
     """
     PATTERNS = [
         (re.compile(r"Bearer\s+[A-Za-z0-9\-_=]+\.[A-Za-z0-9\-_=]+\.?[A-Za-z0-9\-_.+/=]*"), "Bearer [REDACTED]"),
-        (re.compile(r'"password"\s*:\s*"[^"]*"'), '"password": "[REDACTED]"'),
-        (re.compile(r'"secret"\s*:\s*"[^"]*"'), '"secret": "[REDACTED]"'),
-        (re.compile(r'"otp_code"\s*:\s*"[^"]*"'), '"otp_code": "[REDACTED]"'),
-        (re.compile(r'\b[0-9]{13,19}\b'), '[CARD_NUMBER_REDACTED]'),    # Credit cards
-        (re.compile(r'[A-Fa-f0-9]{64}'), '[KEY_HEX_REDACTED]'),         # 256-bit hex keys
+        (re.compile(rr'"password"\s*:\s*"[^"]*"'), '"password": "[REDACTED]"'),
+        (re.compile(rr'"secret"\s*:\s*"[^"]*"'), '"secret": "[REDACTED]"'),
+        (re.compile(rr'"otp_code"\s*:\s*"[^"]*"'), '"otp_code": "[REDACTED]"'),
+        (re.compile(rr'\b[0-9]{13,19}\b'), '[CARD_NUMBER_REDACTED]'),    # Credit cards
+        (re.compile(rr'[A-Fa-f0-9]{64}'), '[KEY_HEX_REDACTED]'),         # 256-bit hex keys
     ]
 
     def filter(self, record):

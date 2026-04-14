@@ -1,4 +1,10 @@
-"""apps/vault/views.py — KYC + Blob endpoints"""
+"""
+apps/vault/views.py — KYC + Blob endpoints
+
+FIX — BlobStoreViewSet: permission_classes didefinisikan dua kali
+  Python menggunakan definisi terakhir. Hapus definisi pertama yang
+  salah agar tidak menyesatkan developer.
+"""
 import logging
 from rest_framework import permissions, viewsets, status
 from rest_framework.decorators import action
@@ -27,23 +33,36 @@ class KYCVaultViewSet(viewsets.ViewSet):
     def submit_kyc(self, request):
         """Submit KYC data — fields must be pre-encrypted by client."""
         if UserKYCVault.objects.filter(user=request.user).exists():
-            return Response({"detail": "KYC record already exists. Use PATCH to update."}, status=400)
-        required = ["full_name_enc", "date_of_birth_enc", "id_type", "id_number_enc", "id_expiry_enc"]
+            return Response(
+                {"detail": "KYC record already exists. Use PATCH to update."},
+                status=400,
+            )
+        required = [
+            "full_name_enc", "date_of_birth_enc", "id_type",
+            "id_number_enc", "id_expiry_enc",
+        ]
         for field in required:
             if not request.data.get(field):
                 return Response({"detail": f"Field required: {field}"}, status=400)
-        record = UserKYCVault.objects.create(user=request.user, **{k: request.data[k] for k in required})
+
+        record = UserKYCVault.objects.create(
+            user=request.user,
+            **{k: request.data[k] for k in required},
+        )
         return Response(KYCVaultReadSerializer(record).data, status=201)
 
 
 class BlobStoreViewSet(viewsets.ModelViewSet):
-    permission_classes = [permissions.IsAuthenticated]
-    serializer_class = EncryptedBlobSerializer
+    # FIX: Hanya satu definisi permission_classes — yang benar
+    # Sebelumnya ada dua definisi, yang pertama (IsAuthenticated saja)
+    # di-override oleh yang kedua. Dihapus untuk menghindari kebingungan.
     permission_classes = [IsAuthenticated, IsMFAVerified, RequiresVaultSession]
+    serializer_class = EncryptedBlobSerializer
 
     def get_queryset(self):
         return EncryptedBlobStore.objects.filter(
-            owner=self.request.user, is_destroyed=False
+            owner=self.request.user,
+            is_destroyed=False,
         ).order_by("-created_at")
 
     def perform_create(self, serializer):

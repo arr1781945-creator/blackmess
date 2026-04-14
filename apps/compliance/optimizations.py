@@ -24,18 +24,18 @@ def get_aml_ppatk_report(days=30):
     report = AMLAlert.objects.filter(
         created_at__gte=since
     ).select_related(
-        'user', 'transaction', 'resolved_by'
+        r'user', 'transaction', 'resolved_by'
     ).prefetch_related(
-        'sar_reports'
+        r'sar_reports'
     ).values(
-        'alert_type', 'severity'
+        r'alert_type', 'severity'
     ).annotate(
-        total=Count('id'),
-        resolved=Count('id', filter=Q(is_resolved=True)),
-        pending=Count('id', filter=Q(is_resolved=False)),
-        avg_transaction_amount=Avg('transaction__amount'),
-        total_transaction_value=Sum('transaction__amount'),
-    ).order_by('-total')
+        total=Count(r'id'),
+        resolved=Count(r'id', filter=Q(is_resolved=True)),
+        pending=Count(r'id', filter=Q(is_resolved=False)),
+        avg_transaction_amount=Avg(r'transaction__amount'),
+        total_transaction_value=Sum(r'transaction__amount'),
+    ).order_by(r'-total')
 
     return list(report)
 
@@ -53,9 +53,9 @@ def get_transaction_risk_summary(user_id=None, days=7):
                 SUM(t.amount) as total_amount,
                 AVG(t.risk_score) as avg_risk,
                 COUNT(CASE WHEN t.is_flagged THEN 1 END) as flagged,
-                COUNT(CASE WHEN t.status = 'blocked' THEN 1 END) as blocked
+                COUNT(CASE WHEN t.status = r'blocked' THEN 1 END) as blocked
             FROM compliance_transaction_monitor t
-            WHERE t.created_at >= NOW() - INTERVAL '%s days'
+            WHERE t.created_at >= NOW() - INTERVAL r'%s days'
             AND (%s IS NULL OR t.user_id = %s::uuid)
             GROUP BY t.transaction_type
             ORDER BY total_amount DESC
@@ -81,12 +81,12 @@ def get_high_risk_users(threshold=0.7, limit=50):
             FROM users_bankuser u
             LEFT JOIN compliance_transaction_monitor t
                 ON t.user_id = u.id
-                AND t.created_at >= NOW() - INTERVAL '30 days'
+                AND t.created_at >= NOW() - INTERVAL r'30 days'
             LEFT JOIN compliance_aml_alert a
                 ON a.user_id = u.id
                 AND a.is_resolved = FALSE
             WHERE t.risk_score >= %s
-                OR a.severity IN ('high', 'critical')
+                OR a.severity IN (r'high', 'critical')
             GROUP BY u.id, u.username, u.employee_id
             ORDER BY alert_count DESC, max_risk_score DESC
             LIMIT %s
