@@ -92,7 +92,7 @@ export default function Login({ onLogin, onRegister }: { onLogin: (token: string
           {/* Social Login */}
           <div style={{ display: 'flex', gap: 10, marginBottom: 20 }}>
             <button style={{
-              flex: 1, padding: '11px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)',
+              flex: 1, padding: '11px', borderRadius: 10, border: '1px solid #d0d0d0',
               background: '#ffffff', color: '#000000', fontSize: 13, fontWeight: 600,
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               fontFamily: 'inherit'
@@ -110,7 +110,7 @@ export default function Login({ onLogin, onRegister }: { onLogin: (token: string
             </button>
 
             <button style={{
-              flex: 1, padding: '11px', borderRadius: 10, border: '1px solid rgba(255,255,255,0.15)',
+              flex: 1, padding: '11px', borderRadius: 10, border: '1px solid #d0d0d0',
               background: '#ffffff', color: '#000000', fontSize: 13, fontWeight: 600,
               cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8,
               fontFamily: 'inherit'
@@ -150,7 +150,7 @@ export default function Login({ onLogin, onRegister }: { onLogin: (token: string
                 placeholder="your-username"
                 style={{
                   width: '100%', padding: '12px 16px', borderRadius: 10,
-                  background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)',
+                  background: '#1a1a1a', border: '1px solid #d0d0d0',
                   color: 'white', fontSize: 14, outline: 'none', boxSizing: 'border-box',
                   fontFamily: 'inherit'
                 }}
@@ -168,7 +168,7 @@ export default function Login({ onLogin, onRegister }: { onLogin: (token: string
                 placeholder="••••••••••••"
                 style={{
                   width: '100%', padding: '12px 16px', borderRadius: 10,
-                  background: '#1a1a1a', border: '1px solid rgba(255,255,255,0.15)',
+                  background: '#1a1a1a', border: '1px solid #d0d0d0',
                   color: 'white', fontSize: 14, outline: 'none', boxSizing: 'border-box',
                   fontFamily: 'inherit'
                 }}
