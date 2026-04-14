@@ -4,7 +4,7 @@ import { HashIcon, StarIcon, UsersIcon, MoreIcon, PaperclipIcon, SmileIcon, Send
 
 const EMOJIS = ['😀','😂','🥰','😎','🤔','😴','🥳','😭','🔥','💪','👍','👎','❤️','💯','🎉','✅','⚠️','🚀','💻','📱']
 const REACTIONS = ['👍','❤️','😂','😮','😢','🔥']
-import { createWebSocket, fetchMessages, API_URL, getToken } from '../lib/api'
+import { createWebSocket, fetchMessages, API_URL, WS_URL, getToken } from '../lib/api'
 
 
 export function ChatArea({ channel = "umum", currentUser, onVideoCall, onProfile }: {
