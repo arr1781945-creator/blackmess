@@ -14,7 +14,7 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 # liboqs already in base image
 
-ARG CACHE_BUST=1
+ARG CACHE_BUST=1776290743
 COPY . .
 
 RUN python manage.py collectstatic --noinput || true
