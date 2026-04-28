@@ -36,7 +36,7 @@ class WorkspaceCreateView(APIView):
 
         # Validasi slug custom
         if custom_slug:
-            if not re.match(rr'^[a-z0-9-]+$', custom_slug):
+            if not re.match(r'^[a-z0-9-]+$', custom_slug):
                 return Response({r'detail': 'URL hanya boleh huruf kecil, angka, dan tanda -'}, status=400)
             if Workspace.objects.filter(slug=custom_slug).exists():
                 return Response({r'detail': f'URL "{custom_slug}" sudah dipakai. Coba yang lain.'}, status=400)
