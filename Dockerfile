@@ -20,4 +20,4 @@ RUN python manage.py collectstatic --noinput 2>/dev/null || true
 
 EXPOSE 8000
 
-CMD python manage.py migrate --fake compliance 0_medium_fix_migration && python manage.py migrate --noinput && gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120
+CMD python manage.py migrate --fake compliance 0_medium_fix_migration 2>&1 && python manage.py migrate --noinput 2>&1 && gunicorn core.wsgi:application --bind 0.0.0.0:$PORT --workers 2 --timeout 120 --log-level debug
